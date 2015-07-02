@@ -1,0 +1,80 @@
+<strings>
+
+	<language id="default" value="en-US" />
+
+	<language id="en-US">
+		<param key="mainframe.title" value="ClickPB" />
+		<param key="mainframe.waiting" value="waiting ..." />
+		<param key="photoframe.title" value="Photo Viewer" />
+		<param key="photoframe.no_photos" value="No photos !" />
+		<param key="loadconfiguration.title" value="Configuration File" />
+		<param key="networkframe.title" value="Informations" />
+		<param key="networkframe.address_label" value="IP Address" />
+		<param key="brightness_label" value="Brightness" />
+		<param key="contrast_label" value="Contrast" />
+		<param key="saturation_label" value="Saturation" />
+		<param key="hue_label" value="HUE" />
+		<param key="gamma_label" value="Gamma" />
+		<param key="menuframe.title" value="Options Menu" />
+		<param key="menuframe.camera.title" value="Camera Settings" />
+		<param key="menuframe.camera.crop.title" value="Crop Bounds" />
+		<param key="menuframe.camera.viewport.title" value="Viewport Bounds" />
+		<param key="menuframe.camera.image.title" value="Image Settings" />
+		<param key="menuframe.camera.image.aspect" value="Aspect Ratio" />
+		<param key="menuframe.camera.image.gamma" value="Gamma" />
+		<param key="menuframe.camera.image.brightness" value="Brightness" />
+		<param key="menuframe.camera.image.contrast" value="Contrast" />
+		<param key="menuframe.camera.image.saturation" value="Saturation" />
+		<param key="menuframe.camera.image.hue" value="HUE" />
+		<param key="menuframe.camera.image.reset" value="Reset Defaults" />
+		<param key="menuframe.media.title" value="Media Tools" />
+		<param key="menuframe.media.viewer.title" value="Photo Viewer" />
+		<param key="menuframe.system.title" value="System Settings" />
+		<param key="menuframe.system.language" value="Language" />
+		<param key="menuframe.system.format" value="Format" />
+		<param key="menuframe.system.network" value="Network" />
+		<param key="menuframe.system.version" value="Version" />
+		<param key="menuframe.system.load_configuration" value="Load Configuration" />
+		<param key="menuframe.system.reset" value="Reset Defaults" />
+		<param key="of_label" value="of" />
+		<param key="warning_label" value="Warning" />
+	</language>
+
+	<language id="pt-BR">
+		<param key="mainframe.title" value="ClickPB" />
+		<param key="mainframe.waiting" value="processando ..." />
+		<param key="photoframe.title" value="Visualizador de Fotos" />
+		<param key="photoframe.no_photos" value="Pasta vazia !" />
+		<param key="networkframe.title" value="Informações" />
+		<param key="networkframe.address_label" value="Endereço IP" />
+		<param key="brightness_label" value="Brilho" />
+		<param key="contrast_label" value="Contraste" />
+		<param key="saturation_label" value="Saturação" />
+		<param key="hue_label" value="HUE" />
+		<param key="gamma_label" value="Gamma" />
+		<param key="menuframe.title" value="Menu de Opções" />
+		<param key="menuframe.camera.title" value="Configurações da Câmera" />
+		<param key="menuframe.camera.crop.title" value="Ajuste de Corte" />
+		<param key="menuframe.camera.viewport.title" value="Ajuste da Saída de Vídeo" />
+		<param key="menuframe.camera.image.title" value="Configurações de Imagem" />
+		<param key="menuframe.camera.image.aspect" value="Aspect Ratio" />
+		<param key="menuframe.camera.image.gamma" value="Gamma" />
+		<param key="menuframe.camera.image.brightness" value="Brilho" />
+		<param key="menuframe.camera.image.contrast" value="Contraste" />
+		<param key="menuframe.camera.image.saturation" value="Saturação" />
+		<param key="menuframe.camera.image.hue" value="HUE" />
+		<param key="menuframe.camera.image.reset" value="Configuração Padrão" />
+		<param key="menuframe.media.title" value="Ferramentas de Mídia" />
+		<param key="menuframe.media.viewer.title" value="Visualizador de Fotos" />
+		<param key="menuframe.system.title" value="Configurações do Sistema" />
+		<param key="menuframe.system.language" value="Idioma" />
+		<param key="menuframe.system.format" value="Formato de Imagem" />
+		<param key="menuframe.system.network" value="Rede" />
+		<param key="menuframe.system.version" value="Versão" />
+		<param key="menuframe.system.load_configuration" value="Carregar Configuração" />
+		<param key="menuframe.system.reset" value="Configuração Padrão" />
+		<param key="of_label" value="de" />
+		<param key="warning_label" value="Aviso" />
+	</language>
+
+</strings>

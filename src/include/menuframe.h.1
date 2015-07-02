@@ -1,0 +1,43 @@
+#ifndef __MENUFRAME_PHOTOBOOTH_H
+#define __MENUFRAME_PHOTOBOOTH_H
+
+#include "jframe.h"
+#include "jthread.h"
+#include "jsemaphore.h"
+#include "jruntimeexception.h"
+#include "jparammapper.h"
+#include "jstringtokenizer.h"
+#include "jdebug.h"
+#include "jproperties.h"
+#include "jsystem.h"
+#include "jipcserver.h"
+#include "jgridlayout.h"
+#include "jbutton.h"
+#include "jbuttonlistener.h"
+
+#include "framelistener.h"
+#include "audioplayer.h"
+#include "camerasettings.h"
+#include "videograbber.h"
+#include "animation.h"
+
+#include <directfb.h>
+
+class MainFrame;
+
+class MenuFrame : public jgui::Frame, public jgui::ButtonListener {
+
+	private:
+		jgui::GridLayout *_menu_layout;
+		std::vector<jgui::Button *> _buttons;
+		MainFrame *_main_frame;
+
+	public:
+		MenuFrame(MainFrame *frame);
+
+		virtual ~MenuFrame();
+
+		virtual void ActionPerformed(jgui::ButtonEvent *event);
+};
+
+#endif

@@ -1,0 +1,183 @@
+.\" Copyright 2010 Jeff Ferr (jeffersonfr@gmail.com)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.TH clickpb 1  2014-04-01 "" "clickpb's Manual"
+.SH NAME
+clickpb \- sistema de fotografia interativa
+.SH SYNOPSIS
+.B clickpb
+[\fIOPTIONS\fR]
+.SH DESCRIPTION
+.\" Add any additional description here
+.PP
+O clickpb recria um sistema de fotografia interativa com montagens e revelação em tempo real dos clientes. O sistema permite a criação e edição de photos dependendo do desejo dos clientes no momento da fotografia.
+.TP
+Atualmente, o sistema está implementado sobre a plataforma DirectFB. Neste caso, poderiamos fazer uso do arquivo 'directfbrc' para ajustar as configurações gráficas do modo que seja necessário para as necessidades atuais. Por exemplo, se a saída gráfica utilizasse o Frame Buffer diretamente (system=fbdev), as linhas "mode=" do arquivo de configuração poderiam ficar comentadas, permitindo que o DirectFB escolhesse a melhor resolução disponível.
+.TP
+\fB\--help\fR
+Exibe a ajuda do sistema clickpb.
+.TP
+\fB\--timeout\fR <ms>
+Define o tempo máximo de espera para o envio dos comandos remotos.
+.TP
+\fB\--input\fR (<local:id> | <remote:ip:port>) method param1=value1 param2=value2 ... paramN=valueN
+Envia um comando remoto para o sistema clickpb. Verifique a configuração em /etc/clickpb/system.conf
+.TP
+\fB\--version\fR
+Mostra a versão atual do sistema clickpb
+.TP
+Durante a execução do sistema também podemos realizar o ajuste de algumas funcionalidades ou configurações, tais como brilho, gamma, contraste, saturação de cor entre outras configurações. A seguir estão as opções disponíveis:
+.TP
+\fBGg\fR
+Ajusta os valores do gamma.
+.TP
+\fBBb\fR
+Ajusta os valores do brilho.
+.TP
+\fBSs\fR
+Ajusta os níveis de saturação da cor.
+.TP
+\fBTt\fR
+Habilita/Desabilita a exibição da imagem em níveis de cinza.
+.TP
+\fBMm\fR
+Exibe o menu de opções do sistema. A partir deste menu o usuário poderá fazer algumas configurações adicionais de forma gráfica, visualizar as fotos existentes ou mesmo carregar uma nova configuração em tempo de execução.
+.TP
+.SH "CONFIGURATION"
+O clickpb disponibiliza um arquivo de configuração personalizável. Neste arquivo o cliente pode editar quantas fotos serão tiradas, bem como a composição final das fotos. Os parâmetros serão detalhados a seguir:
+
+\fBframes.path\fR
+.br
+	Pasta contendo as bordas ou imagens para composição das imagens.
+
+\fBphotos.path\fR
+.br
+	Pasta onde ficaram as composições finais das imagens.
+
+\fBresources.path\fR
+.br
+	Pasta contendo os arquivos de recurso do sistema.
+
+\fBtemp.path\fR
+.br
+	Pasta temporária utilizada durante o processamento das imagens.
+
+\fBcamera.device\fR
+.br
+	Seleciona o dispositivo da camera. Por padrão é "/dev/video0".
+
+\fBcamera.mode\fR
+.br
+	Define a resolução de saída da camera.
+
+\fBcamera.auto_exposure\fR
+.br
+	Habilita ou desabilita a exposição automática da câmera. Essa opção poderia ser desabilitada para aumentar significativamente a taxa de frames por segundo.
+
+\fBcamera.input\fR
+.br
+	Habilita o acesso de comandos de forma remota a partir de comunicação entre processos. A comunicação pode ser local, no mesmo computador, ou remote, a partir de uma máquina remota.
+
+\fBframe.selection\fR
+.br
+	Define o método para a escolha de novas bordas (auto, manual). No modo "auto", o sistema escolhe uma nova borda para cada nova foto, e no modo "manual" o usuário precisa selecionar cada noova borda utilizando as teclas direcionais do teclado.
+
+\fBcamera.optimize\fR
+.br
+	Habilita o modo otimizado para sistemas computacionais com menor poder de processamento.
+
+\fBcamera.viewport\fR
+.br
+	Ajusta o tamanho da janela de video.
+
+\fBcamera.viewport.aspect\fR
+.br
+	Ajusta o aspecto do frame para 'full' (cobre toda a janela de saída) ou keep (ocupa o máximo de espaço da janela de saída mantendo a mesma proporção).
+
+\fBcamera.viewport.flip\fR
+.br
+	Inverte os frames horizontalmente durante a composição final da imagem.
+
+\fBcamera.shutter\fR
+.br
+	Define uma animação para ser utilizado durante o disparo da foto. Atualmente, exitem dois tipos: fade e image. O tipo fade combina as animações fade-in e fade-out na mesma animação. No tipo image, o usuário pode fazer uso de uma imagem estática um de um grid de imagens para efetuar a animação do disparo.
+
+\fBcamera.shutter.sound\fR
+.br
+	Habilita o efeito sonoro do obturador.
+
+\fBcamera.shutter.timeline\fR
+.br
+	Altera o aspecto da linha de tempo que é exibida durante a sequencia de fotos.
+
+\fBcamera.delay\fR
+.br
+	Define o tempo, em segundos, de espera para cada foto.
+
+\fBcamera.interval\fR
+.br
+	Define o tempo, em segundos, do intervalo entre as fotos.
+
+\fBcamera.animation\fR
+.br
+	Especifica a animação final que irá exibir todas as fotos tiradas pelos clientes. As opções disponíveis são type:<slide, fade, grid>, timeout:<int>.
+
+\fBcamera.greetings\fR
+.br
+	Customiza a tela de apresentação das fotos. As opções disponíveis são image:<file>, color:<name>, timeout:<int>, aspect:<true|false>, message:<text>.
+
+\fBcamera.greetings\fR
+.br
+	Define o tempo máximo de exeibição da mensagem de boas vindas.
+
+\fBimage.thumbs\fR
+.br
+	Define o número de fotos tiradas para compor a foto final.
+:w
+
+\fBimage.crop\fR
+.br
+	Define o corte das fotos intermediárias.
+
+\fBimage.destination\fR
+.br
+	Seleciona a região e a rotação de cada foto sobre a imagem final.
+
+\fBimage.compose\fR
+.br
+	Define as regras finais de composição das fotos para compor a foto final. As opções disponíveis são size:<WxH>, image:<file>, over:<true|false>, color:<name>, alpha:<%>, degrees:<angle>, aspect:<true|false>.
+.SH AUTHOR
+Written by Jeff Ferr.
+.SH "REPORTING BUGS"
+Report bugs to <jeffersonfr@gmail.com>.
+.SH COPYRIGHT
+Copyright \(co 2014 Free Software Foundation, Inc.
+
+This is free software. You may redistribute copies of it under the terms of the GNU General Public License <http://www.gnu.org/licenses/gpl.html>. There is NO WARRANTY, to the extent permitted by law.
+.SH "SEE ALSO"
+For more informations visit 
+.br
+http://sourceforge.net/projects/jlibcpp.
+.br
+http://sourceforge.net/projects/jlwuit.
+.br
+http://sourceforge.net/projects/mlive.
+

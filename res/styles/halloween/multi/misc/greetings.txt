@@ -1,0 +1,2 @@
+wifi: ossos
+site: www.ossos.com.br

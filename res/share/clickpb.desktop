@@ -1,0 +1,16 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0.0
+Name=ClickPB
+Name[pt]=ClickPB
+Name[pt_BR]=ClickPB
+Comment=Interactive photo system
+Comment[pt]=Sistema interativo de fotos
+Comment[pt_BR]=Sistema interativo de fotos
+Exec=/bin/sh -c $BINARY_PATH
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Icon=$MODULE_PATH/share/default.png
+StartupNotify=true
+
