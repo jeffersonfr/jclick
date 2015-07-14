@@ -787,8 +787,11 @@ void MainFrame::Paint(jgui::Graphics *g)
 			jgui::jregion_t region = GetFrameBounds();
 			int tx = (insets.left*_fregion.width)/100;
 			int ty = (insets.top*_fregion.height)/100;
+			jgui::jpen_t pen = g->GetPen();
 
-			g->SetLineWidth(4);
+			pen.width = 4;
+
+			g->SetPen(pen);
 			g->SetColor(0xf0f00000);
 			g->DrawRectangle(
 				tx+region.x, 
