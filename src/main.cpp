@@ -4,6 +4,8 @@
 #include "jremoteipcclient.h"
 #include "jipcexception.h"
 
+#include <signal.h>
+
 void usage()
 {
 	std::cout << "..:: " << __LOCAL_MODULE_NAME__ << " ::.." << std::endl;

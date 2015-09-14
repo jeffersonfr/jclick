@@ -12,7 +12,6 @@
 #include "jsystem.h"
 #include "jipcserver.h"
 #include "jdatalistener.h"
-#include "audioplayer.h"
 
 enum item_type_t {
 	LABEL_ITEM,

@@ -25,7 +25,6 @@
 #include "painter.h"
 #include "mainframe.h"
 #include "config.h"
-#include "videocontrol.h"
 #include "jgridlayout.h"
 #include "jfilechooserdialogbox.h"
 #include "jmessagedialogbox.h"
@@ -55,7 +54,7 @@ std::string menu[][2] = {
 #define GAPX		16
 #define GAPY		16
 
-#define TEXT_SIZE			72
+#define TEXT_SIZE			48
 #define TEXT_SPAN			(TEXT_SIZE+GAPY)
 
 MenuFrame::MenuFrame(MainFrame *frame):
@@ -125,11 +124,11 @@ void MenuFrame::OnAction(std::string state, std::string id, int options_index)
 		if (options_index == 6) {
 			_frame->ResetControlValues();
 			
-			menu_options[id][1].value = _frame->GetControlValue(GAMMA_CONTROL);
-			menu_options[id][2].value = _frame->GetControlValue(BRIGHTNESS_CONTROL);
-			menu_options[id][3].value = _frame->GetControlValue(CONTRAST_CONTROL);
-			menu_options[id][4].value = _frame->GetControlValue(SATURATION_CONTROL);
-			menu_options[id][5].value = _frame->GetControlValue(HUE_CONTROL);
+			menu_options[id][1].value = _frame->GetControlValue(jmedia::JVC_GAMMA);
+			menu_options[id][2].value = _frame->GetControlValue(jmedia::JVC_BRIGHTNESS);
+			menu_options[id][3].value = _frame->GetControlValue(jmedia::JVC_CONTRAST);
+			menu_options[id][4].value = _frame->GetControlValue(jmedia::JVC_SATURATION);
+			menu_options[id][5].value = _frame->GetControlValue(jmedia::JVC_HUE);
 		}
 	} else if (state == "menu.media") {
 		if (options_index == 0) {
@@ -197,15 +196,15 @@ void MenuFrame::OnSelection(std::string state, std::string id, int options_index
 
 			_frame->InitializeRegions();
 		} else if (options_index == 1) {
-			_frame->SetControlValue(GAMMA_CONTROL, menu_options[id][options_index].value);
+			_frame->SetControlValue(jmedia::JVC_GAMMA, menu_options[id][options_index].value);
 		} else if (options_index == 2) {
-			_frame->SetControlValue(BRIGHTNESS_CONTROL, menu_options[id][options_index].value);
+			_frame->SetControlValue(jmedia::JVC_BRIGHTNESS, menu_options[id][options_index].value);
 		} else if (options_index == 3) {
-			_frame->SetControlValue(CONTRAST_CONTROL, menu_options[id][options_index].value);
+			_frame->SetControlValue(jmedia::JVC_CONTRAST, menu_options[id][options_index].value);
 		} else if (options_index == 4) {
-			_frame->SetControlValue(SATURATION_CONTROL, menu_options[id][options_index].value);
+			_frame->SetControlValue(jmedia::JVC_SATURATION, menu_options[id][options_index].value);
 		} else if (options_index == 5) {
-			_frame->SetControlValue(HUE_CONTROL, menu_options[id][options_index].value);
+			_frame->SetControlValue(jmedia::JVC_HUE, menu_options[id][options_index].value);
 		}
 	} else if (state == "menu.system") {
 		if (options_index == 0) {
@@ -323,9 +322,9 @@ void MenuFrame::DrawOptions(jgui::Graphics *g, std::string title, std::string id
 
 		if (o.str().empty() == false) {
 			if (type == LABEL_ITEM) {
-				Painter::DrawString(g, 0, 1, 0xfff0f0f0, tx+tw-sw-GAPX, ty+i*(TEXT_SIZE+GAPY)+GAPY, sw, sh, jgui::JHA_RIGHT, jgui::JVA_CENTER, o.str().c_str());
+				Painter::DrawString(g, 0, 1, 0xfff0f0f0, tx+tw-sw-GAPX, ty+i*(TEXT_SIZE+GAPY), sw, sh+2*GAPY, jgui::JHA_RIGHT, jgui::JVA_CENTER, o.str().c_str());
 			} else {
-				Painter::DrawString(g, 0, 1, 0xfff0f0f0, tx+tw-sw-GAPX, ty+i*(TEXT_SIZE+GAPY)+GAPY, sw, sh, jgui::JHA_CENTER, jgui::JVA_CENTER, o.str().c_str());
+				Painter::DrawString(g, 0, 1, 0xfff0f0f0, tx+tw-sw-GAPX, ty+i*(TEXT_SIZE+GAPY), sw, sh+2*GAPY, jgui::JHA_CENTER, jgui::JVA_CENTER, o.str().c_str());
 			}
 		}
 	}
@@ -357,11 +356,11 @@ void MenuFrame::Initialize()
 	PushItem("image", __L->GetParam("menuframe.camera.image.aspect"), 0, 0, 2-1, LIST_ITEM);
 		PushSubItem("image", "keep");
 		PushSubItem("image", "full");
-	PushItem("image", __L->GetParam("menuframe.camera.image.gamma"), _frame->GetControlValue(GAMMA_CONTROL), 0, 100, RANGE_ITEM);
-	PushItem("image", __L->GetParam("menuframe.camera.image.brightness"), _frame->GetControlValue(BRIGHTNESS_CONTROL), 0, 100, RANGE_ITEM);
-	PushItem("image", __L->GetParam("menuframe.camera.image.contrast"), _frame->GetControlValue(CONTRAST_CONTROL), 0, 100, RANGE_ITEM);
-	PushItem("image", __L->GetParam("menuframe.camera.image.saturation"), _frame->GetControlValue(SATURATION_CONTROL), 0, 100, RANGE_ITEM);
-	PushItem("image", __L->GetParam("menuframe.camera.image.hue"), _frame->GetControlValue(HUE_CONTROL), 0, 100, RANGE_ITEM);
+	PushItem("image", __L->GetParam("menuframe.camera.image.gamma"), _frame->GetControlValue(jmedia::JVC_GAMMA), 0, 100, RANGE_ITEM);
+	PushItem("image", __L->GetParam("menuframe.camera.image.brightness"), _frame->GetControlValue(jmedia::JVC_BRIGHTNESS), 0, 100, RANGE_ITEM);
+	PushItem("image", __L->GetParam("menuframe.camera.image.contrast"), _frame->GetControlValue(jmedia::JVC_CONTRAST), 0, 100, RANGE_ITEM);
+	PushItem("image", __L->GetParam("menuframe.camera.image.saturation"), _frame->GetControlValue(jmedia::JVC_SATURATION), 0, 100, RANGE_ITEM);
+	PushItem("image", __L->GetParam("menuframe.camera.image.hue"), _frame->GetControlValue(jmedia::JVC_HUE), 0, 100, RANGE_ITEM);
 	PushItem("image", __L->GetParam("menuframe.camera.image.reset"), 0, 0, 0, ACTION_ITEM);
 
 	// media options

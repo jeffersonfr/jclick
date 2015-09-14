@@ -12,17 +12,14 @@
 #include "jsystem.h"
 #include "jipcserver.h"
 #include "jthememanager.h"
+#include "jframegrabberlistener.h"
+#include "jplayer.h"
+#include "jvideodevicecontrol.h"
 
-#include "framelistener.h"
-#include "audioplayer.h"
 #include "camerasettings.h"
-#include "videograbber.h"
 #include "animation.h"
-#include "videograbber.h"
 
-#include <directfb.h>
-
-class MainFrame : public jgui::Frame, public jthread::Thread, public FrameListener, public jipc::RemoteCallListener {
+class MainFrame : public jgui::Frame, public jthread::Thread, public jmedia::FrameGrabberListener, public jipc::RemoteCallListener {
 
 	private:
 		std::vector<jgui::Image *> _borders;
@@ -33,8 +30,8 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public FrameListen
 		jthread::Semaphore _sem_lock;
 		jthread::Semaphore _sem_release;
 		jgui::Window *_current;
-		VideoGrabber *_grabber;
-		AudioPlayer *_player;
+		jmedia::Player *_grabber;
+		jmedia::Player *_player;
 		Animation *_animation;
 		jgui::Image *_frame;
 		jgui::Theme *_theme;
@@ -42,7 +39,6 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public FrameListen
 		jgui::jregion_t _wregion;
 		jgui::jregion_t _fregion;
 		jgui::jregion_t _cregion;
-		uint32_t *_rgb32;
 		int _border_index;
 		int _loading_index;
 		int _thumb;
@@ -68,7 +64,8 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public FrameListen
 
 		virtual void InitializeRegions();
 
-		virtual void ProcessFrame(const uint8_t *buffer, int width, int height, pixelformat_t format);
+		virtual void FrameGrabbed(jmedia::FrameGrabberEvent *event);
+
 		virtual void ReleaseFrame();
 
 		virtual void LoadResources();
@@ -83,9 +80,9 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public FrameListen
 		virtual void StopShutter();
 		virtual void ToogleBlackAndWhite();
 
-		virtual void ShowControlStatus(video_control_t id);
-		virtual int GetControlValue(video_control_t id);
-		virtual void SetControlValue(video_control_t id, int value);
+		virtual void ShowControlStatus(jmedia::jvideo_control_t id);
+		virtual int GetControlValue(jmedia::jvideo_control_t id);
+		virtual void SetControlValue(jmedia::jvideo_control_t id, int value);
 		virtual void ResetControlValues();
 		
 		virtual void Paint(jgui::Graphics *g);

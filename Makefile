@@ -43,7 +43,6 @@ OK 				= \033[30;32mOK\033[m
 
 OBJS			= \
 						animation.o\
-						audioplayer.o\
 						camerasettings.o\
 						composeframe.o\
 						cropframe.o\
@@ -59,8 +58,6 @@ OBJS			= \
 						photoframe.o\
 						preferences.o\
 						slideanimation.o\
-						videocontrol.o\
-						videograbber.o\
 						main.o\
 	   
 SRCS	= $(addprefix src/,$(OBJS))

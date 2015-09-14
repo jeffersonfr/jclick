@@ -11,6 +11,8 @@
 #include "jlocalipcserver.h"
 #include "jremoteipcserver.h"
 #include "jstringutils.h"
+#include "jplayermanager.h"
+#include "jvideodevicecontrol.h"
 #include "jdebug.h"
 
 #include <sstream>
@@ -21,8 +23,8 @@
 #define GAPX	16
 #define GAPY	16
 
-#define CTRL_DN(id) SetControlValue(id, _grabber->GetVideoControl()->GetValue(id) - CONTROL_STEP)
-#define CTRL_UP(id) SetControlValue(id, _grabber->GetVideoControl()->GetValue(id) + CONTROL_STEP)
+#define CTRL_DN(id) SetControlValue(id, GetControlValue(id) - CONTROL_STEP)
+#define CTRL_UP(id) SetControlValue(id, GetControlValue(id) + CONTROL_STEP)
 
 class RepaintThread : public jthread::Thread {
 
@@ -53,98 +55,13 @@ class RepaintThread : public jthread::Thread {
 
 RepaintThread _repaint_thread;
 
-void rgb24_to_rgb32_array(const uint8_t **rgb24_array, uint32_t **rgb32_array, int width, int height, bool hflip)
-{
-	uint32_t size_1 = width*height;
-	uint8_t *src = ((uint8_t *)(*rgb24_array));
-	uint8_t *dst = ((uint8_t *)(*rgb32_array));
-
-	for (uint32_t i=0; i<size_1; i++) {
-		dst[0] = src[2];
-		dst[1] = src[1];
-		dst[2] = src[0];
-		dst[3] = 0xff;
-
-		src = src + 3;
-		dst = dst + 4;
-	}
-}
-
-void yuyv_to_rgb32_array(const uint8_t **yuv_array, uint32_t **rgb32_array, int width, int height, bool hflip)
-{
-	uint8_t *pixel = ((uint8_t *)(*yuv_array));
-	uint32_t size_1 = width*height,
-		size_2 = size_1/2,
-		*ptr = *rgb32_array;
-	int y[2], 
-		u, 
-		v;
-	int col = width;
-
-	if (hflip == false) {
-		for (uint32_t i=0; i<size_2; i++) {
-			y[0] = *(pixel+0);
-			u = *(pixel+1);
-			y[1] = *(pixel+2);
-			v = *(pixel+3);
-
-			uint8_t *argb;
-
-			for (int i=0; i<2; i++) {
-				argb = (uint8_t *)(ptr++);
-
-				int C = y[i] - 16;
-				int D = u - 128;
-				int E = v - 128;			
-
-				argb[2] = CLAMP((298 * C + 409 * E + 128) >> 8, 0, 255);
-				argb[1] = CLAMP((298 * C - 100 * D - 208 * E + 128) >> 8, 0, 255);
-				argb[0] = CLAMP((298 * C + 516 * D + 128) >> 8, 0, 255);
-				argb[3] = 0xff;
-			}
-		
-			pixel = pixel + 4;
-		}
-	} else {
-		for (uint32_t i=0; i<size_2; i++) {
-			y[0] = *(pixel+0);
-			u = *(pixel+1);
-			y[1] = *(pixel+2);
-			v = *(pixel+3);
-
-			uint8_t *argb;
-
-			for (int i=0; i<2; i++) {
-				argb = (uint8_t *)(ptr+col-1);
-				col = col-1;
-				if (col <= 0) {
-					col = width;
-					ptr = ptr+width;
-				}
-
-				int C = y[i] - 16;
-				int D = u - 128;
-				int E = v - 128;			
-
-				argb[2] = CLAMP((298 * C + 409 * E + 128) >> 8, 0, 255);
-				argb[1] = CLAMP((298 * C - 100 * D - 208 * E + 128) >> 8, 0, 255);
-				argb[0] = CLAMP((298 * C + 516 * D + 128) >> 8, 0, 255);
-				argb[3] = 0xff;
-			}
-		
-			pixel = pixel + 4;
-		}
-	}
-}
-
 MainFrame::MainFrame():
 	jgui::Frame(),
-	FrameListener(),
+	jmedia::FrameGrabberListener(),
 	jipc::RemoteCallListener()
 {
 	_current = NULL;
 	_player = NULL;
-	_rgb32 = NULL;
 	_animation = NULL;
 	_grabber = NULL;
 	_frame = NULL;
@@ -155,6 +72,11 @@ MainFrame::MainFrame():
 	_bw = false;
 	_view_crop = false;
 	_need_repaint;
+
+	_fregion.x = 0;
+	_fregion.y = 0;
+	_fregion.width = GetWidth();
+	_fregion.height = GetHeight();
 
 	_wregion.x = 0;
 	_wregion.y = 0;
@@ -214,8 +136,6 @@ MainFrame::~MainFrame()
 	delete _frame;
 	delete _grabber;
 	delete _animation;
-	
-	delete [] _rgb32;
 }
 
 void MainFrame::LoadResources()
@@ -226,7 +146,7 @@ void MainFrame::LoadResources()
 		_player = NULL;
 	}
 
-	_player = new AudioPlayer(__C->GetCameraShutterSound());
+	_player = jmedia::PlayerManager::CreatePlayer(__C->GetCameraShutterSound());
 
 	// load frames borders
 	std::vector<std::string> files;
@@ -376,33 +296,33 @@ jipc::Response * MainFrame::ProcessCall(jipc::Method *method)
 		std::string value = method->GetTextParam("value");
 
 		if (value == "up") {
-			CTRL_UP(GAMMA_CONTROL);
+			CTRL_UP(jmedia::JVC_GAMMA);
 		} else if (value == "dn") {
-			CTRL_DN(GAMMA_CONTROL);
+			CTRL_DN(jmedia::JVC_GAMMA);
 		}
 	} else if (name == "brightness") {
 		std::string value = method->GetTextParam("value");
 
 		if (value == "up") {
-			CTRL_UP(BRIGHTNESS_CONTROL);
+			CTRL_UP(jmedia::JVC_BRIGHTNESS);
 		} else if (value == "dn") {
-			CTRL_DN(BRIGHTNESS_CONTROL);
+			CTRL_DN(jmedia::JVC_BRIGHTNESS);
 		}
 	} else if (name == "contrast") {
 		std::string value = method->GetTextParam("value");
 
 		if (value == "up") {
-			CTRL_UP(CONTRAST_CONTROL);
+			CTRL_UP(jmedia::JVC_CONTRAST);
 		} else if (value == "dn") {
-			CTRL_DN(CONTRAST_CONTROL);
+			CTRL_DN(jmedia::JVC_CONTRAST);
 		}
 	} else if (name == "saturation") {
 		std::string value = method->GetTextParam("value");
 
 		if (value == "up") {
-			CTRL_UP(SATURATION_CONTROL);
+			CTRL_UP(jmedia::JVC_SATURATION);
 		} else if (value == "dn") {
-			CTRL_DN(SATURATION_CONTROL);
+			CTRL_DN(jmedia::JVC_SATURATION);
 		}
 	} else {
 		response->SetBooleanParam("self", false);
@@ -465,7 +385,7 @@ void MainFrame::InitializeRegions()
 	Repaint();
 }
 	
-void MainFrame::ProcessFrame(const uint8_t *buffer, int width, int height, pixelformat_t format)
+void MainFrame::FrameGrabbed(jmedia::FrameGrabberEvent *event)
 {
 	if (__C->IsOptimized() == true && (void *)_animation != NULL) {
 		Repaint();
@@ -473,59 +393,56 @@ void MainFrame::ProcessFrame(const uint8_t *buffer, int width, int height, pixel
 		return;
 	}
 
-	if (_frame == NULL) {
-		// INFO:: the first is better, the second is faster
-		_frame = jgui::Image::CreateImage(jgui::JPF_ARGB, width, height);
-		// _frame = jgui::Image::CreateImage(width, height, jgui::JPF_YUY2, _screen.width, _screen.height);
-		// _frame = jgui::Image::CreateImage(width, height, jgui::JPF_ARGB);
+	jgui::jsize_t t = event->GetFrame()->GetSize();
 
+	if (_frame == NULL) {
 		_cregion.x = 0;
 		_cregion.y = 0;
-		_cregion.width = width;
-		_cregion.height = height;
+		_cregion.width = t.width;
+		_cregion.height = t.height;
 
 		InitializeRegions();
-
-		_rgb32 = new uint32_t[width*height];
+	} else {
+		delete _frame;
+		_frame = NULL;
 	}
 
-	if (format == YUYV) {
-		yuyv_to_rgb32_array(&buffer, &_rgb32, width, height, true);
-	} else if (format == RGB24) {
-		rgb24_to_rgb32_array(&buffer, &_rgb32, width, height, true);
+	_mutex.Lock();
+
+	if (__C->GetCameraViewportFlip() == false) {
+		_frame = jgui::Image::CreateImage(event->GetFrame());
+	} else {
+		_frame = event->GetFrame()->Flip(jgui::JFF_HORIZONTAL);
 	}
+
+	_mutex.Unlock();
 
 	if (_bw == true) {
-		int count = width*height;
-		uint32_t *ptr = _rgb32;
+		int count = t.width*t.height;
+		uint32_t *ptr = new uint32_t[count];
+
+		_frame->GetGraphics()->GetRGBArray(&ptr, 0, 0, t.width, t.height);
 
 		for (int i=0; i<count; i++) {
-			uint32_t pixel = *ptr;
+			uint32_t pixel = ptr[i];
 			int r = (pixel >> 16) & 0xff;
 			int g = (pixel >> 8) & 0xff;
 			int b = (pixel >> 0) & 0xff;
 
 			int y = CLAMP(0.299*r + 0.587*g + 0.114*b, 0, 255);
 
-			*(ptr++) = 0xff000000 | (y << 16) | (y << 8) | (y << 0);
+			ptr[i] = 0xff000000 | (y << 16) | (y << 8) | (y << 0);
 		}
+
+		_frame->GetGraphics()->SetRGBArray(ptr, 0, 0, t.width, t.height);
+
+		delete [] ptr;
 	}
 
 	if (_repaint_thread.IsRunning() == true) {
 		_repaint_thread.WaitThread();
 	}
 
-	_mutex.Lock();
-
-	if (_frame != NULL) {
-		_frame->GetGraphics()->SetRGBArray((uint32_t *)_rgb32, 0, 0, width, height);
-		// _frame->GetGraphics()->SetPixels((uint8_t *)buffer);
-	}
-
-	_mutex.Unlock();
-
-	// CHANGE:: used to avoid dependence between ProcessFrame() and Paint(Graphics *)
-	// _repaint_thread.Start();
 	Repaint();
 }
 
@@ -544,13 +461,13 @@ void MainFrame::Initialize()
 	_screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
 
 #ifdef CAMERA_ENABLED
-	_grabber = new VideoGrabber(this, __C->GetTextParam("camera.device")); 
+	_grabber = jmedia::PlayerManager::CreatePlayer(std::string("v4l2:") + __C->GetTextParam("camera.device")); 
 
 	jgui::jsize_t size = __C->GetCameraMode();
 
-	_grabber->Open();
-	_grabber->Configure(size.width, size.height);
-	_grabber->Start();
+	_grabber->RegisterFrameGrabberListener(this);
+	// TODO:: _grabber->Configure(size.width, size.height);
+	_grabber->Play();
 	
 	ResetControlValues();
 #endif
@@ -653,21 +570,21 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 			
 		_need_repaint = true;
 	} else if (event->GetSymbol() == jgui::JKS_b) {
-		CTRL_DN(BRIGHTNESS_CONTROL);
+		CTRL_DN(jmedia::JVC_BRIGHTNESS);
 	} else if (event->GetSymbol() == jgui::JKS_B) {
-		CTRL_UP(BRIGHTNESS_CONTROL);
+		CTRL_UP(jmedia::JVC_BRIGHTNESS);
 	} else if (event->GetSymbol() == jgui::JKS_g) {
-		CTRL_DN(GAMMA_CONTROL);
+		CTRL_DN(jmedia::JVC_GAMMA);
 	} else if (event->GetSymbol() == jgui::JKS_G) {
-		CTRL_UP(GAMMA_CONTROL);
+		CTRL_UP(jmedia::JVC_GAMMA);
 	} else if (event->GetSymbol() == jgui::JKS_c) {
-		CTRL_DN(CONTRAST_CONTROL);
+		CTRL_DN(jmedia::JVC_CONTRAST);
 	} else if (event->GetSymbol() == jgui::JKS_C) {
-		CTRL_UP(CONTRAST_CONTROL);
+		CTRL_UP(jmedia::JVC_CONTRAST);
 	} else if (event->GetSymbol() == jgui::JKS_s) {
-		CTRL_DN(SATURATION_CONTROL);
+		CTRL_DN(jmedia::JVC_SATURATION);
 	} else if (event->GetSymbol() == jgui::JKS_S) {
-		CTRL_UP(SATURATION_CONTROL);
+		CTRL_UP(jmedia::JVC_SATURATION);
 	}
 
 #ifndef CAMERA_ENABLED
@@ -708,7 +625,7 @@ void MainFrame::ToogleBlackAndWhite()
 		}
 }
 
-void MainFrame::ShowControlStatus(video_control_t id)
+void MainFrame::ShowControlStatus(jmedia::jvideo_control_t id)
 {
 	if (_lock_menu == true) {
 		return;
@@ -716,38 +633,56 @@ void MainFrame::ShowControlStatus(video_control_t id)
 
 	std::string str;
 
-	if (id == BRIGHTNESS_CONTROL) {
+	if (id == jmedia::JVC_BRIGHTNESS) {
 		str = __L->GetParam("brightness_label");
-	} else if (id == CONTRAST_CONTROL) {
+	} else if (id == jmedia::JVC_CONTRAST) {
 		str = __L->GetParam("contrast_label");
-	} else if (id == SATURATION_CONTROL) {
+	} else if (id == jmedia::JVC_SATURATION) {
 		str = __L->GetParam("saturation_label");
-	} else if (id == HUE_CONTROL) {
+	} else if (id == jmedia::JVC_HUE) {
 		str = __L->GetParam("hue_label");
-	} else if (id == GAMMA_CONTROL) {
+	} else if (id == jmedia::JVC_GAMMA) {
 		str = __L->GetParam("gamma_label");
 	}
 
 	if (str.empty() == false) {
-		LevelFrame::GetInstance()->Show(str, _grabber->GetVideoControl()->GetValue(id));
+		LevelFrame::GetInstance()->Show(str, GetControlValue(id));
 	}
 }
 
-int MainFrame::GetControlValue(video_control_t id)
+int MainFrame::GetControlValue(jmedia::jvideo_control_t id)
 {
-	return _grabber->GetVideoControl()->GetValue(id);
+	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber->GetControl("video.device");
+	
+	if (control != NULL) {
+		return control->GetValue(id);
+	}
+
+	return 0;
 }
 
-void MainFrame::SetControlValue(video_control_t id, int value)
+void MainFrame::SetControlValue(jmedia::jvideo_control_t id, int value)
 {
-	_grabber->GetVideoControl()->SetValue(id, value);
+	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber->GetControl("video.device");
+	
+	if (control != NULL) {
+		control->SetValue(id, value);
+	}
 
 	ShowControlStatus(id);
 }
 
 void MainFrame::ResetControlValues()
 {
-	_grabber->GetVideoControl()->Reset();
+	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber->GetControl("video.device");
+	
+	if (control != NULL) {
+		std::vector<jmedia::jvideo_control_t> controls = control->GetControls();
+
+		for (std::vector<jmedia::jvideo_control_t>::iterator i=controls.begin(); i!=controls.end(); i++) {
+			control->Reset(*i);
+		}
+	}
 }
 
 int MainFrame::Command(const char *fmt, ...) 
