@@ -106,6 +106,7 @@ class CameraSettings : public jcommon::ParamMapper {
 		std::string GetResourcesPath();
 		std::string GetFrameSelection();
 		std::string GetImageFormat();
+		std::string GetScreenSaver();
 		std::string GetSystemLanguage();
 		bool IsOptimized();
 		int GetCameraDelay();

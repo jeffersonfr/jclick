@@ -115,6 +115,11 @@ void CameraSettings::LoadConfiguration(std::string file)
 		SetTextParam(*i, p.GetPropertyByName(*i));
 	}
 
+	// load screen saver
+	{
+		SetTextParam("screen.saver", jcommon::StringUtils::Trim(GetTextParam("screen.saver"), "'\""));
+	}
+
 	// load system font name
 	{
 		SetTextParam("system.font", jcommon::StringUtils::Trim(GetTextParam("system.font"), "'\""));
@@ -550,6 +555,11 @@ std::string CameraSettings::GetFrameSelection()
 std::string CameraSettings::GetImageFormat()
 {
 	return GetTextParam("image.format");
+}
+
+std::string CameraSettings::GetScreenSaver()
+{
+	return GetFullPath(GetTextParam("screen.saver"));
 }
 
 std::string CameraSettings::GetSystemLanguage()

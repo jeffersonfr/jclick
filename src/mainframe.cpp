@@ -745,9 +745,9 @@ void MainFrame::Paint(jgui::Graphics *g)
 			_animation = NULL;
 
 			_sem_lock.Notify();
-
-			return;
 		}
+		
+		return;
 	}
 
 	if (_fade >= 0) {
@@ -782,7 +782,15 @@ void MainFrame::Paint(jgui::Graphics *g)
 			_sem_lock.Notify();
 		}
 	} else {
-		if (_counter >= 0) {
+		if (_counter < 0) {
+			jgui::Image *image = jgui::Image::CreateImage(__C->GetScreenSaver());
+
+			if (image != NULL) {
+				g->DrawImage(image, _fregion.x, _fregion.y, _fregion.width, _fregion.height);
+
+				delete image;
+			}
+		} else {
 			// INFO:: draw photo counter
 			camera_shutter_timeline_t t = __C->GetCameraShutterTimeLine();
 			int dy = 128;
@@ -961,8 +969,6 @@ void MainFrame::Run()
 		}
 	}
 
-	_counter = -1;
-
 	if (_running == false) {
 		goto _run_cleanup;
 	}
@@ -974,6 +980,8 @@ void MainFrame::Run()
 	} else if (animation.type == "fade") {
 		_animation = new FadeAnimation();
 	}
+
+	_counter = -1;
 
 	if (compose.over == true) {
 		Command("convert \"%s/background.png\" -draw \"Image Over 0,0 %d,%d '%s/compose.png'\" \"%s/background.png\"", temporary.c_str(), compose.size.width, compose.size.height, temporary.c_str(), temporary.c_str());
