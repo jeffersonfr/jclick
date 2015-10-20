@@ -357,7 +357,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 					int r;
 
 					if ((r = read(fd, tmp, 4096)) > 0) {
-						_camera_greetings.message = std::string(tmp, r);
+						_camera_greetings.message = std::string(tmp, r-1);
 					}
 				}
 			}

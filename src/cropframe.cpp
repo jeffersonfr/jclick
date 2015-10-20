@@ -24,15 +24,14 @@
 
 #define CROP_LINE_SIZE 4
 
-bool _updated = false;
 CropFrame::CropFrame(std::string title, jgui::jregion_t region, jgui::jinsets_t insets):
-	jgui::DialogBox(title, region.x, region.y, region.width, region.height)
+	jgui::Panel(title, region.x, region.y, region.width, region.height)
 {
-	_updated = false;
 	_crop_region = region;
 	_crop_insets = insets;
+	_updated = false;
 
-	SetUndecorated(true);
+  // SetBackgroundVisible(true);
 }
 
 CropFrame::~CropFrame()
@@ -46,8 +45,14 @@ jgui::jinsets_t CropFrame::GetCrop()
 
 bool CropFrame::KeyPressed(jgui::KeyEvent *event)
 {
-	if (jgui::Frame::KeyPressed(event) == true) {
+	if (jgui::Container::KeyPressed(event) == true) {
 		return true;
+	}
+
+	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT);
+
+	if (exit == true || event->GetSymbol() == jgui::JKS_BACKSPACE) {
+		return false;
 	}
 
 	if (event->GetSymbol() == jgui::JKS_R || event->GetSymbol() == jgui::JKS_r) {
@@ -100,15 +105,13 @@ bool CropFrame::KeyPressed(jgui::KeyEvent *event)
 
 void CropFrame::Paint(jgui::Graphics *g)
 {
-	jgui::Frame::Paint(g);
+	jgui::Container::Paint(g);
 
 	jgui::jregion_t bounds = GetVisibleBounds();
 
 	bounds.width = bounds.width-2*CROP_LINE_SIZE;
 	bounds.height = bounds.height-2*CROP_LINE_SIZE;
 
-	g->Clear();
-	
 	int tx = (_crop_insets.left*bounds.width)/100;
 	int ty = (_crop_insets.top*bounds.height)/100;
 

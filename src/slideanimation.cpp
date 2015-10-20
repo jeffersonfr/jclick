@@ -19,10 +19,8 @@ SlideAnimation::SlideAnimation():
 	std::string temporary = __C->GetTempPath();
 	camera_greetings_t greetings = __C->GetCameraGreetings();
 	int count = __C->GetThumbsCount();
-	int
-		iw = 16, 
-		ih = 16;
-	int gapx = 32;
+	int iw = 16;
+	int ih = 16;
 
 	_frames = NULL;
 	_state = 0;
@@ -37,18 +35,40 @@ SlideAnimation::SlideAnimation():
 	screen.width = (screen.width - crop.left - crop.right) / 2;
 	screen.height = (screen.height - crop.top - crop.bottom) / 2;
 
-	_frames = jgui::Image::CreateImage(jgui::JPF_ARGB, count*(screen.width+gapx)-gapx, screen.height);
+	int fw = count*(screen.width+SLIDEANIMATION_STEP);
+	int fh = screen.height;
+
+	_frames = jgui::Image::CreateImage(jgui::JPF_ARGB, fw, fh);
 
 	if (_frames == NULL) {
 		throw jcommon::OutOfMemoryException(
-				jcommon::StringUtils::Format("Cannot allocate the suface %dx%d", count*(screen.width+gapx)-gapx, screen.height));
+				jcommon::StringUtils::Format("Cannot allocate the suface %dx%d", fw, fh));
 	}
+
+	jgui::Graphics *g = _frames->GetGraphics();
+	
+	g->SetColor(_color);
+	g->FillRectangle(0, 0, _frames->GetWidth(), _frames->GetHeight());
 
 	for (int i=0; i<count; i++) {
 		std::string path = jcommon::StringUtils::Format("%s/camera_%04d.png", temporary.c_str(), i);
 		jgui::Image *image = jgui::Image::CreateImage(path);
-		
-		_frames->GetGraphics()->DrawImage(image, i*(screen.width+gapx), 0, screen.width, screen.height);
+		jgui::jsize_t size = image->GetSize();
+	
+		int iw = size.width;
+		int ih = size.height;
+
+		if (iw > screen.width) {
+			iw = screen.width;
+			ih = (size.height * screen.width)/size.width;
+		}
+
+		if (ih > screen.height) {
+			ih = screen.height;
+			iw = (size.width * screen.height)/size.height;
+		}
+
+		g->DrawImage(image, i*(screen.width+SLIDEANIMATION_STEP)+(screen.width-iw)/2, (screen.height-ih)/2, iw, ih);
 
 		delete image;
 	}

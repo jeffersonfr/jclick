@@ -463,10 +463,19 @@ void MainFrame::Initialize()
 #ifdef CAMERA_ENABLED
 	_grabber = jmedia::PlayerManager::CreatePlayer(std::string("v4l2:") + __C->GetTextParam("camera.device")); 
 
+	// TODO:: _grabber->Configure(size.width, size.height);
+	
+	jmedia::Control *control = _grabber->GetControl("video.device");
+
+	if (control != NULL) {
+		jmedia::VideoDeviceControl *device = dynamic_cast<jmedia::VideoDeviceControl *>(control);
+
+		device->SetValue(jmedia::JVC_AUTO_EXPOSURE, 0);
+	}
+
 	jgui::jsize_t size = __C->GetCameraMode();
 
 	_grabber->RegisterFrameGrabberListener(this);
-	// TODO:: _grabber->Configure(size.width, size.height);
 	_grabber->Play();
 	
 	ResetControlValues();
