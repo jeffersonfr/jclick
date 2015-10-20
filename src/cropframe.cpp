@@ -25,7 +25,7 @@
 #define CROP_LINE_SIZE 4
 
 CropFrame::CropFrame(std::string title, jgui::jregion_t region, jgui::jinsets_t insets):
-	jgui::Panel(title, region.x, region.y, region.width, region.height)
+	jgui::DialogBox(title, region.x, region.y, region.width, region.height)
 {
 	_crop_region = region;
 	_crop_insets = insets;

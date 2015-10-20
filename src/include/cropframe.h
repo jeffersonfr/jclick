@@ -36,6 +36,7 @@ class CropFrame : public jgui::DialogBox {
 	private:
 		jgui::jregion_t _crop_region;
 		jgui::jinsets_t _crop_insets;
+		bool _updated;
 
 	public:
 		CropFrame(std::string title, jgui::jregion_t region, jgui::jinsets_t insets);
