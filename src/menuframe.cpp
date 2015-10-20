@@ -76,7 +76,7 @@ MenuFrame::MenuFrame(MainFrame *frame):
 	_images["hspin"] = jgui::Image::CreateImage(__C->GetResourcesPath() + "/" + "images/hspin.png");
 	_images["vspin"] = jgui::Image::CreateImage(__C->GetResourcesPath() + "/" + "images/vspin.png");
 
-	SetBounds((_size.width-_size.width*0.60)/2, 64, _size.width*0.60, _size.height*0.70);
+	SetBounds((_size.width-_size.width*0.60)/2, _size.height*0.10, _size.width*0.60, _size.height*0.80);
 
 	Initialize();
 }
@@ -497,7 +497,7 @@ void MenuFrame::DrawMenu(jgui::Graphics *g)
 			ix = igx,
 			iy = TEXT_SIZE+igy,
 			iw = (w-4*igx)/OPTIONS_COLS,
-			ih = (h-TEXT_SIZE-4*igy)/OPTIONS_ROWS;
+			ih = (h-TEXT_SIZE-6*igy)/OPTIONS_ROWS;
 
 	for (int i=0; i<OPTIONS_SIZE; i++) {
 		if (i != _index) {

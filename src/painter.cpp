@@ -34,11 +34,13 @@ void Painter::Initialize()
 
 	jgui::jsize_t screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
 
-	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_NORMAL, (32*screen.height)/900));
-	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_NORMAL, (64*screen.height)/900));
-	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_NORMAL, (96*screen.height)/900));
-	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_NORMAL, (120*screen.height)/900));
-	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_BOLD, (18*screen.height)/900));
+	int d = 960;
+
+	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_NORMAL, (32*screen.height)/d));
+	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_NORMAL, (64*screen.height)/d));
+	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_NORMAL, (96*screen.height)/d));
+	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_NORMAL, (120*screen.height)/d));
+	_fonts.push_back(jgui::Font::CreateFont(name, jgui::JFA_BOLD, (18*screen.height)/d));
 }
 
 jgui::Font * Painter::GetFont(int font_index)

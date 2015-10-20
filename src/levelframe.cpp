@@ -29,9 +29,9 @@ LevelFrame::LevelFrame():
 	_level = 0;
 	_timeout = 0;
 
-	SetBounds((_size.width-_size.width/2)/2, (_size.height-_size.height/3), _size.width/2, _size.height/4);
 	SetUndecorated(true);
-	SetInputEnabled(false);
+
+	SetBounds((_size.width-_size.width/2)/2, (_size.height-_size.height/3), _size.width/2, _size.height/4);
 }
 
 LevelFrame::~LevelFrame()

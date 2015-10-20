@@ -3,12 +3,14 @@
 #include "config.h"
 
 NetworkFrame::NetworkFrame(MainFrame *frame):
-	jgui::Frame(__L->GetParam("networkframe.title"), 480, 240, 960, 400)
+	jgui::Frame(__L->GetParam("networkframe.title"))
 {
 	// SetLayout(_info_layout = new jgui::GridLayout(1, 2));
+	
+	SetBounds((_size.width-_size.width*0.60)/2, 64, _size.width*0.60, _size.height*0.70);
 
-	_address_label = new jgui::Label(__L->GetParam("networkframe.address_label"), _insets.left, _insets.top+8, 320, DEFAULT_COMPONENT_HEIGHT);
-	_address = new jgui::ComboBox(_insets.left+320+8, _insets.top+8, 960-320-8-_insets.left-_insets.right, DEFAULT_COMPONENT_HEIGHT);
+	_address_label = new jgui::Label(__L->GetParam("networkframe.address_label"), _insets.left, _insets.top+8, 240, DEFAULT_COMPONENT_HEIGHT);
+	_address = new jgui::ComboBox(_insets.left+240+8, _insets.top+8, _size.width-240-8-_insets.left-_insets.right, DEFAULT_COMPONENT_HEIGHT);
 
 	FILE * fp = popen("ifconfig | grep 'inet ' | awk '{ print $2 }' | awk -F: '{ print $2 }' | grep -v '127.0.0'", "r");
 	// FILE * fp = popen("ifconfig | grep 'inet ' | awk '{ print $2 }' | awk -F: '{ print $2 }'", "r");
