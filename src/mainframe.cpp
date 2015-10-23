@@ -102,6 +102,10 @@ MainFrame::MainFrame():
 
 	LoadResources();
 
+	_level_frame = new LevelFrame(this);
+
+	Add(_level_frame);
+
 	// INFO:: load "loading" frames
 	jgui::Image *loading = jgui::Image::CreateImage(__C->GetResourcesPath() + "/images/loading.png");
 
@@ -120,6 +124,7 @@ MainFrame::MainFrame():
 
 	_loading_index = 0;
 
+	SetBackgroundVisible(false);
 	SetUndecorated(true);
 	SetDefaultExitEnabled(false);
 		
@@ -465,14 +470,6 @@ void MainFrame::Initialize()
 
 	// TODO:: _grabber->Configure(size.width, size.height);
 	
-	jmedia::Control *control = _grabber->GetControl("video.device");
-
-	if (control != NULL) {
-		jmedia::VideoDeviceControl *device = dynamic_cast<jmedia::VideoDeviceControl *>(control);
-
-		device->SetValue(jmedia::JVC_AUTO_EXPOSURE, 0);
-	}
-
 	jgui::jsize_t size = __C->GetCameraMode();
 
 	_grabber->RegisterFrameGrabberListener(this);
@@ -565,9 +562,9 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 	} else if (event->GetSymbol() == jgui::JKS_r || event->GetSymbol() == jgui::JKS_R) {
 		_bw = false;
 
-		ResetControlValues();
+		_level_frame->Hide();
 
-		LevelFrame::GetInstance()->Hide();
+		ResetControlValues();
 	} else if (event->GetSymbol() == jgui::JKS_t || event->GetSymbol() == jgui::JKS_T) {
 		ToogleBlackAndWhite();
 	} else if (event->GetSymbol() == jgui::JKS_v || event->GetSymbol() == jgui::JKS_V) {
@@ -611,27 +608,29 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 
 void MainFrame::StartShutter()
 {
-		if (IsRunning() == false) {
-			_running = true;
+	_level_frame->Hide();
 
-			Start();
-		}
+	if (IsRunning() == false) {
+		_running = true;
+
+		Start();
+	}
 }
 
 void MainFrame::StopShutter()
 {
-		_running = false;
+	_running = false;
 
-		WaitThread();
+	WaitThread();
 }
 
 void MainFrame::ToogleBlackAndWhite()
 {
-		if (_bw == false) {
-			_bw = true;
-		} else {
-			_bw = false;
-		}
+	if (_bw == false) {
+		_bw = true;
+	} else {
+		_bw = false;
+	}
 }
 
 void MainFrame::ShowControlStatus(jmedia::jvideo_control_t id)
@@ -655,7 +654,7 @@ void MainFrame::ShowControlStatus(jmedia::jvideo_control_t id)
 	}
 
 	if (str.empty() == false) {
-		LevelFrame::GetInstance()->Show(str, GetControlValue(id));
+		_level_frame->Show(str, GetControlValue(id));
 	}
 }
 
@@ -691,6 +690,8 @@ void MainFrame::ResetControlValues()
 		for (std::vector<jmedia::jvideo_control_t>::iterator i=controls.begin(); i!=controls.end(); i++) {
 			control->Reset(*i);
 		}
+		
+		control->SetValue(jmedia::JVC_AUTO_EXPOSURE, (__C->GetCameraAutoExposure() == false)?0:100);
 	}
 }
 
@@ -758,6 +759,8 @@ void MainFrame::Paint(jgui::Graphics *g)
 		
 		return;
 	}
+
+	jgui::Container::Paint(g);
 
 	if (_fade >= 0) {
 		if (shutter.type == "fade") {

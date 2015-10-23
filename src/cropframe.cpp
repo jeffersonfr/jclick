@@ -31,7 +31,7 @@ CropFrame::CropFrame(std::string title, jgui::jregion_t region, jgui::jinsets_t 
 	_crop_insets = insets;
 	_updated = false;
 
-  // SetBackgroundVisible(true);
+	SetUndecorated(true);
 }
 
 CropFrame::~CropFrame()
@@ -52,7 +52,9 @@ bool CropFrame::KeyPressed(jgui::KeyEvent *event)
 	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT);
 
 	if (exit == true || event->GetSymbol() == jgui::JKS_BACKSPACE) {
-		return false;
+		Release();
+
+		return true;
 	}
 
 	if (event->GetSymbol() == jgui::JKS_R || event->GetSymbol() == jgui::JKS_r) {
@@ -105,7 +107,7 @@ bool CropFrame::KeyPressed(jgui::KeyEvent *event)
 
 void CropFrame::Paint(jgui::Graphics *g)
 {
-	jgui::Container::Paint(g);
+	jgui::Frame::Paint(g);
 
 	jgui::jregion_t bounds = GetVisibleBounds();
 

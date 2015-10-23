@@ -30,25 +30,19 @@
 #include <unistd.h>
 #include <stdio.h>
 
-class LevelFrame : public jgui::Frame, public jthread::Thread {
-
-	private:
-		static LevelFrame *_instance;
+class LevelFrame : public jgui::Component, public jthread::Thread {
 
 	private:
 		std::string _id;
 		int _level;
 		int _timeout;
 
-	private:
-		LevelFrame();
-
 	public:
+		LevelFrame(jgui::Container *parent);
 		virtual ~LevelFrame();
 
-		static LevelFrame * GetInstance();
-
 		virtual void Show(std::string id, int level);
+		virtual void Hide();
 		virtual void Paint(jgui::Graphics *g);
 		virtual void Run();
 

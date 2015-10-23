@@ -21,63 +21,65 @@
 #include "painter.h"
 #include "config.h"
 
-LevelFrame *LevelFrame::_instance = NULL;
-
-LevelFrame::LevelFrame():
-	jgui::Frame()
+LevelFrame::LevelFrame(jgui::Container *parent):
+	jgui::Component()
 {
+	jgui::jregion_t t = parent->GetVisibleBounds();
+
 	_level = 0;
 	_timeout = 0;
 
-	SetUndecorated(true);
+	SetVisible(false);
 
-	SetBounds((_size.width-_size.width/2)/2, (_size.height-_size.height/3), _size.width/2, _size.height/4);
+	SetBounds((t.width-t.width/2)/2, t.height-t.height/3, t.width/2, t.height/4);
 }
 
 LevelFrame::~LevelFrame()
 {
 }
 
-LevelFrame * LevelFrame::GetInstance()
-{
-	if (_instance == NULL) {
-		_instance = new LevelFrame();
-	}
-
-	return _instance;
-}
-
 void LevelFrame::Show(std::string id, int level)
 {
+	_timeout = __C->GetIntegerParam("frame.timeout");
 	_id = id;
 	_level = level;
-	_timeout = __C->GetIntegerParam("frame.timeout");
 
-	if (IsVisible() == false) {
-		jgui::Frame::Show(false);
-
+	if (IsRunning() == false) {
 		Start();
-	} else {
-		Repaint();
 	}
+	
+	SetVisible(true);
+}
+	
+void LevelFrame::Hide()
+{
+	if (IsRunning() == false) {
+		return;
+	}
+	
+	_timeout = 0;
+
+	WaitThread();
+
+	SetVisible(false);
 }
 	
 void LevelFrame::Paint(jgui::Graphics *g)
 {
-	jgui::Frame::Paint(g);
+	// jgui::Component::Paint(g);
 
 	jgui::jregion_t bounds = GetVisibleBounds();
-	jgui::jinsets_t insets = GetInsets();
 
-	int sw = bounds.width-insets.left-insets.right,
-			sh = bounds.height-insets.top-insets.bottom;
+	int gap = 8;
+	int sw = bounds.width-2*gap,
+			sh = bounds.height;
 	int level = (_level < 0)?0:(_level > 100)?100:_level;
 
 	jgui::Font *font = Painter::GetFont(1);
 
-	Painter::DrawString(g, 1, 0, 0xfff0f0f0, insets.left, 16, sw, font->GetSize(), _id);
-	Painter::DrawBox(g, 0xffcfcdc8, insets.left, 16+font->GetSize()+32, (sw*level)/100, 48);
-	Painter::DrawBorder(g, 0xff000000, insets.left, 16+font->GetSize()+32, sw, 48);
+	Painter::DrawString(g, 1, 0, 0xfff0f0f0, 0, 16, sw, font->GetSize(), _id);
+	Painter::DrawBox(g, 0xffcfcdc8, gap, 16+font->GetSize()+32, (sw*level)/100, 48);
+	Painter::DrawBorder(g, 0xff000000, gap, 16+font->GetSize()+32, sw, 48);
 }
 
 void LevelFrame::Run()
@@ -88,5 +90,5 @@ void LevelFrame::Run()
 		_timeout = _timeout - 1;
 	}
 
-	Hide();
+	SetVisible(false);
 }

@@ -647,9 +647,12 @@ void CameraSettings::SetCameraViewport(jgui::jinsets_t insets)
 
 	sprintf(tmp, "%d,%d,%d,%d", insets.left, insets.top, insets.right, insets.bottom);
 
-	p.Load(_config_file);
-	p.SetPropertyByName("camera.viewport", tmp);
-	p.Save();
+	try {
+		p.Load(_config_file);
+		p.SetPropertyByName("camera.viewport", tmp);
+		p.Save();
+	} catch (jcommon::RuntimeException &e) {
+	}
 }
 
 void CameraSettings::SetSourceCrop(jgui::jinsets_t insets)
@@ -661,18 +664,24 @@ void CameraSettings::SetSourceCrop(jgui::jinsets_t insets)
 
 	sprintf(tmp, "%d,%d,%d,%d", insets.left, insets.top, insets.right, insets.bottom);
 
-	p.Load(_config_file);
-	p.SetPropertyByName("image.crop", tmp);
-	p.Save();
+	try {
+		p.Load(_config_file);
+		p.SetPropertyByName("image.crop", tmp);
+		p.Save();
+	} catch (jcommon::RuntimeException &e) {
+	}
 }
 
 void CameraSettings::SetSystemLanguage(std::string language)
 {
 	jcommon::Properties p;
 
-	p.Load(_config_file);
-	p.SetPropertyByName("system.language", std::string("\"") + language + "\"");
-	p.Save();
+	try {
+		p.Load(_config_file);
+		p.SetPropertyByName("system.language", std::string("\"") + language + "\"");
+		p.Save();
+	} catch (jcommon::RuntimeException &e) {
+	}
 	
 	SetTextParam("system.language", language);
 }
@@ -681,9 +690,12 @@ void CameraSettings::SetCameraViewportAspect(std::string aspect)
 {
 	jcommon::Properties p;
 
-	p.Load(_config_file);
-	p.SetPropertyByName("camera.viewport.aspect", std::string("\"") + aspect + "\"");
-	p.Save();
+	try {
+		p.Load(_config_file);
+		p.SetPropertyByName("camera.viewport.aspect", std::string("\"") + aspect + "\"");
+		p.Save();
+	} catch (jcommon::RuntimeException &e) {
+	}
 	
 	SetTextParam("camera.viewport.aspect", aspect);
 }
@@ -692,9 +704,12 @@ void CameraSettings::SetImageFormat(std::string format)
 {
 	jcommon::Properties p;
 
-	p.Load(_config_file);
-	p.SetPropertyByName("image.format", std::string("\"") + format + "\"");
-	p.Save();
+	try {
+		p.Load(_config_file);
+		p.SetPropertyByName("image.format", std::string("\"") + format + "\"");
+		p.Save();
+	} catch (jcommon::RuntimeException &e) {
+	}
 	
 	SetTextParam("image.format", format);
 }

@@ -139,8 +139,9 @@ void MenuFrame::OnAction(std::string state, std::string id, int options_index)
 			_current = new NetworkFrame(_frame);
 		} else if (options_index == 4) {
 			jgui::FileChooserDialogBox *frame = new jgui::FileChooserDialogBox(__L->GetParam("menuframe.system.load_configuration"), __C->GetResourcesPath());
-			// jgui::FileChooserDialogBox *frame = new jgui::FileChooserDialogBox(__L->GetParam("menuframe.system.load_configuration"), __C->GetTextParam("config.directory"));
+			jgui::jregion_t t = frame->GetVisibleBounds();
 			
+			frame->SetLocation((_location.x-t.x)/2, (_location.y-t.y)/2);
 			frame->GetParams()->SetTextParam("id", "loadconf");
 			frame->RegisterDataListener(this);
 

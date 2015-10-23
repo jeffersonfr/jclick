@@ -15,9 +15,9 @@
 #include "jframegrabberlistener.h"
 #include "jplayer.h"
 #include "jvideodevicecontrol.h"
-
 #include "camerasettings.h"
 #include "animation.h"
+#include "levelframe.h"
 
 class MainFrame : public jgui::Frame, public jthread::Thread, public jmedia::FrameGrabberListener, public jipc::RemoteCallListener {
 
@@ -30,6 +30,7 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public jmedia::Fra
 		jthread::Semaphore _sem_lock;
 		jthread::Semaphore _sem_release;
 		jgui::Window *_current;
+		LevelFrame *_level_frame;
 		jmedia::Player *_grabber;
 		jmedia::Player *_player;
 		Animation *_animation;
