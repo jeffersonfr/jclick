@@ -124,15 +124,15 @@ void PhotoFrame::Paint(jgui::Graphics *g)
 		return;
 	}
 
-	jgui::jsize_t isize = jgui::Image::GetImageSize(_images[_index]);
-
 	jgui::jsize_t screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
+	jgui::jsize_t isize = jgui::Image::GetImageSize(_images[_index]);
 
 	float fw = isize.width,
 				fh = isize.height,
 				scale = 0.0;
+	int bordersize = GetTheme()->GetBorderSize("window");
 
-	sh = sh - 2 * GetBorderSize();
+	sh = sh - 2 * bordersize;
 
 	if (isize.width > sw) {
 		fw = sw;
@@ -158,7 +158,7 @@ void PhotoFrame::Paint(jgui::Graphics *g)
 
 	jgui::Image *image = jgui::Image::CreateImage(_images[_index]);
 
-	g->DrawImage(image, (int)((sw-fw)/2)+insets.left, (int)((sh-fh)/2)+insets.top+GetBorderSize(), (int)fw, (int)fh);
+	g->DrawImage(image, (int)((sw-fw)/2)+insets.left, (int)((sh-fh)/2)+insets.top+bordersize, (int)fw, (int)fh);
 	
 	delete image;
 

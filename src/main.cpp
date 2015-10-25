@@ -1,5 +1,7 @@
 #include "mainframe.h"
+#include "painter.h"
 #include "config.h"
+
 #include "jlocalipcclient.h"
 #include "jremoteipcclient.h"
 #include "jipcexception.h"
@@ -160,6 +162,21 @@ int main(int argc, char **argv)
 	sigaction(SIGSEGV, &sa_new, &sa_old);
 
 	atexit(cleanup_resources);
+
+	Painter::Initialize();
+
+	jgui::Theme theme;
+
+	theme.SetFont("component", Painter::GetFont(4));
+	theme.SetBorderSize("component", 1);
+	theme.SetColor("component.bg", 0x40, 0x40, 0x40, 0xd0);
+	theme.SetColor("component.scroll", 0x40, 0x40, 0x40, 0xd0);
+
+	theme.SetFont("window", Painter::GetFont(0));
+	theme.SetBorderSize("window", 0);
+	theme.SetColor("window.bg", 0x20, 0x20, 0x20, 0xd0);
+
+	jgui::ThemeManager::GetInstance()->SetTheme(&theme);
 
 	try {
 		MainFrame window;

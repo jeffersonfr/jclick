@@ -35,7 +35,6 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public jmedia::Fra
 		jmedia::Player *_player;
 		Animation *_animation;
 		jgui::Image *_frame;
-		jgui::Theme *_theme;
 		jgui::jsize_t _screen;
 		jgui::jregion_t _wregion;
 		jgui::jregion_t _fregion;

@@ -87,19 +87,6 @@ MainFrame::MainFrame():
 
 	jgui::jinsets_t insets = GetInsets();
 
-	_theme = new jgui::Theme();
-
-	_theme->SetComponentFont(Painter::GetFont(4));
-	_theme->SetComponentBorderSize(1);
-	_theme->SetComponentBackgroundColor(0x40, 0x40, 0x40, 0xd0);
-	_theme->SetComponentScrollbarColor(0x40, 0x40, 0x40, 0xd0);
-	_theme->SetWindowFont(Painter::GetFont(0));
-	_theme->SetWindowBorderSize(0);
-	_theme->SetWindowBackgroundColor(0x20, 0x20, 0x20, 0xd0);
-	_theme->SetWindowInsets(insets.left, insets.top+32, insets.right, insets.bottom);
-
-	jgui::ThemeManager::GetInstance()->SetTheme(_theme);
-
 	LoadResources();
 
 	_level_frame = new LevelFrame(this);
