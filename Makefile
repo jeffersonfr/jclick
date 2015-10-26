@@ -49,7 +49,6 @@ OBJS			= \
 						fadeanimation.o\
 						framelistener.o\
 						gridanimation.o\
-						networkframe.o\
 						language.o\
 						levelframe.o\
 						mainframe.o\

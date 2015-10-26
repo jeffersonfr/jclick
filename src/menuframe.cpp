@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "menuframe.h"
 #include "cropframe.h"
-#include "networkframe.h"
 #include "composeframe.h"
 #include "photoframe.h"
 #include "painter.h"
@@ -28,6 +27,7 @@
 #include "jgridlayout.h"
 #include "jfilechooserdialogbox.h"
 #include "jmessagedialogbox.h"
+#include "jautolock.h"
 
 #include <iostream>
 #include <iomanip>
@@ -57,15 +57,15 @@ std::string menu[][2] = {
 #define TEXT_SIZE			48
 #define TEXT_SPAN			(TEXT_SIZE+GAPY)
 
-MenuFrame::MenuFrame(MainFrame *frame):
-	jgui::Frame(__L->GetParam("menuframe.title"))
+MenuFrame::MenuFrame(MainFrame *parent):
+	jgui::Panel(__L->GetParam("menuframe.title"))
 {
-	SetDefaultExitEnabled(false);
+	jgui::jregion_t t = parent->GetVisibleBounds();
 
 	menu_options.clear();
 
 	_current = NULL;
-	_frame = frame;
+	_frame = parent;
 	_index = 0;
 	_state = "menu";
 
@@ -76,7 +76,9 @@ MenuFrame::MenuFrame(MainFrame *frame):
 	_images["hspin"] = jgui::Image::CreateImage(__C->GetResourcesPath() + "/" + "images/hspin.png");
 	_images["vspin"] = jgui::Image::CreateImage(__C->GetResourcesPath() + "/" + "images/vspin.png");
 
-	SetBounds((_size.width-_size.width*0.60)/2, _size.height*0.10, _size.width*0.60, _size.height*0.80);
+	SetVisible(false);
+
+	SetBounds((t.width-t.width*0.60)/2, t.height*0.10, t.width*0.60, t.height*0.80);
 
 	Initialize();
 }
@@ -135,9 +137,7 @@ void MenuFrame::OnAction(std::string state, std::string id, int options_index)
 			_current = new PhotoFrame(__C->GetPhotosPath());
 		}
 	} else if (state == "menu.system") {
-		if (options_index == 2) {
-			_current = new NetworkFrame(_frame);
-		} else if (options_index == 4) {
+		if (options_index == 4) {
 			jgui::FileChooserDialogBox *frame = new jgui::FileChooserDialogBox(__L->GetParam("menuframe.system.load_configuration"), __C->GetResourcesPath());
 			jgui::jregion_t t = frame->GetVisibleBounds();
 			
@@ -220,10 +220,11 @@ void MenuFrame::OnSelection(std::string state, std::string id, int options_index
 
 void MenuFrame::ProcessKeyDown(jgui::jkeyevent_symbol_t key, std::string state, std::string id, int &options_index)
 {
-	int value = menu_options[id][options_index].value,
-			min = menu_options[id][options_index].min,
-			max = menu_options[id][options_index].max;
-	item_type_t type = menu_options[id][options_index].type;
+	struct options_t &option = menu_options[id][options_index];
+	int value = option.value,
+			min = option.min,
+			max = option.max;
+	item_type_t type = option.type;
 
 	if (key == jgui::JKS_ENTER) {
 		if (type == ACTION_ITEM || type == TIME_ITEM) {
@@ -231,13 +232,13 @@ void MenuFrame::ProcessKeyDown(jgui::jkeyevent_symbol_t key, std::string state, 
 		}
 	} else if (key == jgui::JKS_CURSOR_LEFT) {
 		if (value > 0 && value > min) {
-			menu_options[id][options_index].value = value - 1;
+			option.value = value - 1;
 
 			OnSelection(state, id, options_index);
 		}
 	} else if (key == jgui::JKS_CURSOR_RIGHT) {
 		if (value >= 0 && value < max) {
-			menu_options[id][options_index].value = value + 1;
+			option.value = value + 1;
 
 			OnSelection(state, id, options_index);
 		}
@@ -285,9 +286,12 @@ void MenuFrame::DrawOptions(jgui::Graphics *g, std::string title, std::string id
 		image_id = "media";
 	} else if (id == "system") {
 		image_id = "system";
+	} else if (id == "system.network") {
+		image_id = "system";
 	}
 
 	for (int i=0; i<(int)menu_options[id].size(); i++) {
+		struct options_t &option = menu_options[id][i];
 		jgui::Color color = jgui::Color::Gray;
 
 		if (i == options_index) {
@@ -295,11 +299,11 @@ void MenuFrame::DrawOptions(jgui::Graphics *g, std::string title, std::string id
 		}
 
 		Painter::DrawBorder(g, color, tx, ty+i*(TEXT_SIZE+GAPY), tw, th);
-		Painter::DrawString(g, 0, 1, 0xfff0f0f0, tx+GAPX, ty+i*(TEXT_SIZE+GAPY), tw, th, jgui::JHA_LEFT, jgui::JVA_CENTER, menu_options[id][i].name.c_str());
+		Painter::DrawString(g, 0, 1, 0xfff0f0f0, tx+GAPX, ty+i*(TEXT_SIZE+GAPY), tw, th, jgui::JHA_LEFT, jgui::JVA_CENTER, option.name.c_str());
 
 		std::ostringstream o;
-		int value = menu_options[id][i].value;
-		item_type_t type = menu_options[id][i].type;
+		int value = option.value;
+		item_type_t type = option.type;
 
 		if (type != LABEL_ITEM && type != ACTION_ITEM) {
 			g->DrawImage(_images["hspin"], tx+tw-sw-GAPX, ty+i*(TEXT_SIZE+GAPY)+GAPY, sw, sh);
@@ -314,9 +318,9 @@ void MenuFrame::DrawOptions(jgui::Graphics *g, std::string title, std::string id
 				<< std::setw(2) << std::setfill('0') << m << ":" 
 				<< std::setw(2) << std::setfill('0') << s;
 		} else if (type == LIST_ITEM) {
-			o << menu_options[id][i].elements[value];
+			o << option.elements[value];
 		} else if (type == LABEL_ITEM) {
-			o << menu_options[id][i].elements[value];
+			o << option.elements[value];
 		} else if (type == RANGE_ITEM) {
 			o << value;
 		}
@@ -346,6 +350,8 @@ void MenuFrame::PushItem(std::string id, std::string name, int value, int min, i
 
 void MenuFrame::Initialize()
 {
+	jthread::AutoLock lock(&_mutex);
+
 	menu_options.clear();
 
 	// camera options
@@ -375,11 +381,32 @@ void MenuFrame::Initialize()
 		PushSubItem("system", "jpg");
 		PushSubItem("system", "png");
 	PushItem("system", __L->GetParam("menuframe.system.network"), 0, 0, 0, ACTION_ITEM);
-	PushItem("system", __L->GetParam("menuframe.system.version"), 0, 0, 1-1, LABEL_ITEM);
+	PushItem("system", __L->GetParam("menuframe.system.version"), 0, 0, 0, LABEL_ITEM);
 		PushSubItem("system", "1.0.0b");
 	PushItem("system", __L->GetParam("menuframe.system.load_configuration"), 0, 0, 0, ACTION_ITEM);
-	PushItem("system", __L->GetParam("menuframe.system.reset"), 0, 0, 0, ACTION_ITEM);
 	
+	// system network options
+	FILE * fp = popen("ifconfig | grep 'inet ' | awk '{ print $2 }' | awk -F: '{ print $2 }' | grep -v '127.0.0'", "r");
+
+	if (fp != NULL) {
+		char *p = NULL, *e;
+		size_t n;
+		int i = 0;
+
+		while ((getline(&p, &n, fp) > 0) && p) {
+			char *str = strchr(p, '\n');
+
+			if (str != NULL) {
+				*str = '\0';
+			}
+
+			PushItem("system.network", __L->GetParam("menuframe.system.network.ipaddress"), 0, 0, 0, LABEL_ITEM);
+				PushSubItem("system.network", p);
+		}
+	}
+
+	pclose(fp);
+
 	// INFO:: adjust indexes 
 	if (__C->GetCameraViewportAspect() == CVA_KEEP) {
 		menu_options["image"][0].value = 0;
@@ -402,17 +429,15 @@ void MenuFrame::Initialize()
 
 bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 {
-	if (jgui::Frame::KeyPressed(event) == true) {
+	if (jgui::Component::KeyPressed(event) == true) {
 		return true;
 	}
 
-	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT);
+	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT) || event->GetSymbol() == jgui::JKS_BACKSPACE;
 
-	if (exit == true || event->GetSymbol() == jgui::JKS_BACKSPACE) {
+	if (exit == true) {
 		if (_state == "menu") {
-			Release();
-
-			return true;
+			return false;
 		}
 
 		_state = _state.substr(0, _state.rfind("."));
@@ -463,9 +488,17 @@ bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 	} else if (_state == "menu.media") {
 		ProcessKeyDown(event->GetSymbol(), "menu.media", "media", _media_index);
 	} else if (_state == "menu.system") {
-		ProcessKeyDown(event->GetSymbol(), "menu.system", "system", _system_index);
+		if (event->GetSymbol() == jgui::JKS_ENTER) {
+			if (_system_index == 2) {
+				_state = "menu.system.network";
+			} else {
+				ProcessKeyDown(event->GetSymbol(), "menu.system", "system", _system_index);
+			}
+		} else {
+			ProcessKeyDown(event->GetSymbol(), "menu.system", "system", _system_index);
+		}
 	}
-
+	
 	if (_state == "menu") {
 		SetTitle(__L->GetParam("menuframe.title"));
 	} else if (_state == "menu.camera") {
@@ -514,7 +547,9 @@ void MenuFrame::DrawMenu(jgui::Graphics *g)
 
 void MenuFrame::Paint(jgui::Graphics *g)
 {
-	jgui::Frame::Paint(g);
+	jgui::Panel::Paint(g);
+
+	jthread::AutoLock lock(&_mutex);
 
 	if (_state == "menu") {
 		DrawMenu(g);
@@ -526,6 +561,8 @@ void MenuFrame::Paint(jgui::Graphics *g)
 		DrawOptions(g, "Media Tools", "media", _media_index);
 	} else if (_state == "menu.system") {
 		DrawOptions(g, "System Settings", "system", _system_index);
+	} else if (_state == "menu.system.network") {
+		DrawOptions(g, "System Settings", "system.network", _system_index);
 	}
 }
 

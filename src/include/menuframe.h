@@ -1,7 +1,7 @@
 #ifndef __MENUFRAME_PHOTOBOOTH_H
 #define __MENUFRAME_PHOTOBOOTH_H
 
-#include "jframe.h"
+#include "jpanel.h"
 #include "jthread.h"
 #include "jsemaphore.h"
 #include "jruntimeexception.h"
@@ -32,10 +32,11 @@ struct options_t {
 
 class MainFrame;
 
-class MenuFrame : public jgui::Frame, public jcommon::DataListener {
+class MenuFrame : public jgui::Panel, public jcommon::DataListener {
 
 	private:
 		std::map<std::string, jgui::Image *> _images;
+		jthread::Mutex _mutex;
 		jgui::Window *_current;
 		MainFrame *_frame;
 		std::string _state;

@@ -83,14 +83,14 @@ MainFrame::MainFrame():
 	_wregion.width = GetWidth();
 	_wregion.height = GetHeight();
 
-	Painter::Initialize();
-
 	jgui::jinsets_t insets = GetInsets();
 
 	LoadResources();
 
+	_menu_frame = new MenuFrame(this);
 	_level_frame = new LevelFrame(this);
 
+	Add(_menu_frame);
 	Add(_level_frame);
 
 	// INFO:: load "loading" frames
@@ -387,6 +387,8 @@ void MainFrame::FrameGrabbed(jmedia::FrameGrabberEvent *event)
 
 	jgui::jsize_t t = event->GetFrame()->GetSize();
 
+	_mutex.Lock();
+
 	if (_frame == NULL) {
 		_cregion.x = 0;
 		_cregion.y = 0;
@@ -398,8 +400,6 @@ void MainFrame::FrameGrabbed(jmedia::FrameGrabberEvent *event)
 		delete _frame;
 		_frame = NULL;
 	}
-
-	_mutex.Lock();
 
 	if (__C->GetCameraViewportFlip() == false) {
 		_frame = jgui::Image::CreateImage(event->GetFrame());
@@ -532,18 +532,26 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 		_current = NULL;
 	}
 
+	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT) || event->GetSymbol() == jgui::JKS_BACKSPACE;
+
 	if (event->GetSymbol() == jgui::JKS_ENTER) {
 		StartShutter();
-	} else if (event->GetSymbol() == jgui::JKS_ESCAPE) {
-		StopShutter();
+	} else if (exit == true) {
+		if (_menu_frame->IsVisible() == true) {
+			_menu_frame->SetVisible(false);
+		} else {
+			StopShutter();
 
-		_need_repaint = true;
+			_need_repaint = true;
+		}
 	} else if (event->GetSymbol() == jgui::JKS_CURSOR_LEFT) {
 		PreviousBorder();
 	} else if (event->GetSymbol() == jgui::JKS_CURSOR_RIGHT) {
 		NextBorder();
 	} else if (event->GetSymbol() == jgui::JKS_m || event->GetSymbol() == jgui::JKS_M) {
-		_current = new MenuFrame(this);
+		// _current = new MenuFrame(this);
+		_menu_frame->SetVisible(true);
+		_menu_frame->RequestFocus();
 	} else if (event->GetSymbol() == jgui::JKS_q || event->GetSymbol() == jgui::JKS_Q) {
 		ReleaseAll();
 	} else if (event->GetSymbol() == jgui::JKS_r || event->GetSymbol() == jgui::JKS_R) {
@@ -640,13 +648,17 @@ void MainFrame::ShowControlStatus(jmedia::jvideo_control_t id)
 		str = __L->GetParam("gamma_label");
 	}
 
-	if (str.empty() == false) {
+	if (str.empty() == false && _menu_frame->IsVisible() == false) {
 		_level_frame->Show(str, GetControlValue(id));
 	}
 }
 
 int MainFrame::GetControlValue(jmedia::jvideo_control_t id)
 {
+	if (_grabber == NULL) {
+		return 0;
+	}
+
 	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber->GetControl("video.device");
 	
 	if (control != NULL) {

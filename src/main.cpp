@@ -168,13 +168,20 @@ int main(int argc, char **argv)
 	jgui::Theme theme;
 
 	theme.SetFont("component", Painter::GetFont(4));
-	theme.SetBorderSize("component", 1);
-	theme.SetColor("component.bg", 0x40, 0x40, 0x40, 0xd0);
-	theme.SetColor("component.scroll", 0x40, 0x40, 0x40, 0xd0);
 
+	theme.SetColor("component.bg", 0x40, 0x40, 0x40, 0xd0);
+	theme.SetColor("component.bg.focus", 0x20, 0x20, 0x20, 0xd0);
+	theme.SetColor("component.scroll", 0xa0, 0xa0, 0xa0, 0xd0);
+	
+	theme.SetColor("item.bg", 0x40, 0x40, 0x40, 0xd0);
+	theme.SetColor("item.fg", 0x40, 0x40, 0x40, 0xd0);
+	theme.SetColor("item.bg.focus", 0x80, 0x80, 0x80, 0xd0);
+	
 	theme.SetFont("window", Painter::GetFont(0));
-	theme.SetBorderSize("window", 0);
 	theme.SetColor("window.bg", 0x20, 0x20, 0x20, 0xd0);
+
+	theme.SetBorderSize("component", 1);
+	theme.SetBorderSize("window", 0);
 
 	jgui::ThemeManager::GetInstance()->SetTheme(&theme);
 

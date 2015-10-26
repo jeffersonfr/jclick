@@ -9,7 +9,6 @@
 		<param key="photoframe.no_photos" value="No photos !" />
 		<param key="loadconfiguration.title" value="Configuration File" />
 		<param key="networkframe.title" value="Informations" />
-		<param key="networkframe.address_label" value="IP Address" />
 		<param key="brightness_label" value="Brightness" />
 		<param key="contrast_label" value="Contrast" />
 		<param key="saturation_label" value="Saturation" />
@@ -36,6 +35,7 @@
 		<param key="menuframe.system.version" value="Version" />
 		<param key="menuframe.system.load_configuration" value="Load Configuration" />
 		<param key="menuframe.system.reset" value="Reset Defaults" />
+		<param key="menuframe.system.network.ipaddress" value="IP Address" />
 		<param key="of_label" value="of" />
 		<param key="warning_label" value="Warning" />
 	</language>
@@ -46,7 +46,6 @@
 		<param key="photoframe.title" value="Visualizador de Fotos" />
 		<param key="photoframe.no_photos" value="Pasta vazia !" />
 		<param key="networkframe.title" value="Informações" />
-		<param key="networkframe.address_label" value="Endereço IP" />
 		<param key="brightness_label" value="Brilho" />
 		<param key="contrast_label" value="Contraste" />
 		<param key="saturation_label" value="Saturação" />
@@ -73,6 +72,7 @@
 		<param key="menuframe.system.version" value="Versão" />
 		<param key="menuframe.system.load_configuration" value="Carregar Configuração" />
 		<param key="menuframe.system.reset" value="Configuração Padrão" />
+		<param key="menuframe.system.network.ipaddress" value="Endereço de Rede" />
 		<param key="of_label" value="de" />
 		<param key="warning_label" value="Aviso" />
 	</language>
