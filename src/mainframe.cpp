@@ -17,6 +17,8 @@
 
 #include <sstream>
 
+#include <stdarg.h>
+
 #define CAMERA_ENABLED
 
 #define CONTROL_STEP 	2
@@ -143,9 +145,14 @@ void MainFrame::LoadResources()
 	// load frames borders
 	std::vector<std::string> files;
 
-	jio::File file(__C->GetFramesPath());
+	jio::File *file = jio::File::OpenDirectory(__C->GetFramesPath());
 
-	file.ListFiles(&files);
+	if (file != NULL) {
+		file->ListFiles(&files);
+
+		delete file;
+		file = NULL;
+	}
 
 	jthread::AutoLock lock(&_mutex);
 
@@ -163,9 +170,9 @@ void MainFrame::LoadResources()
 	for (std::vector<std::string>::iterator i=files.begin(); i!=files.end(); i++) {
 		std::string image = __C->GetFramesPath() + "/" + (*i);
 
-		jio::File f(image);
+		file = jio::File::OpenFile(image);
 
-		if (f.GetType() != jio::JFT_DIRECTORY) {
+		if (file != NULL) {
 			_borders.push_back(jgui::Image::CreateImage(image));
 		}
 	}
@@ -932,7 +939,9 @@ void MainFrame::Run()
 
 		_fade = shutter.range_min;
 		
-		_player->Play();
+		if (_player != NULL) {
+			_player->Play();
+		}
 
 		_sem_lock.Wait();
 

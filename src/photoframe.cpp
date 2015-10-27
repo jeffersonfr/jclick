@@ -44,17 +44,22 @@ PhotoFrame::PhotoFrame(std::string path):
 
 	std::vector<std::string> files;
 
-	jio::File file(path);
+	jio::File *file = jio::File::OpenDirectory(path);
 
-	file.ListFiles(&files);
+	if (file != NULL) {
+		file->ListFiles(&files);
+
+		delete file;
+		file = NULL;
+	}
 
 	for (std::vector<std::string>::iterator i=files.begin(); i!=files.end(); i++) {
 		std::string filepath = path + "/" + (*i);
 
 		try {
-			jio::File file(filepath);
+			file = jio::File::OpenFile(filepath);
 
-			if (file.GetType() == jio::JFT_REGULAR) {
+			if (file != NULL) {
 				if (filepath.size() > 4 && (
 							strcasecmp((const char *)filepath.c_str()+filepath.size()-3, "png") == 0 || 
 							strcasecmp((const char *)filepath.c_str()+filepath.size()-3, "jpg") == 0
@@ -62,6 +67,9 @@ PhotoFrame::PhotoFrame(std::string path):
 
 					_images.push_back(filepath);
 				}
+
+				delete file;
+				file = NULL;
 			}
 		} catch (jio::IOException &e) {
 		}

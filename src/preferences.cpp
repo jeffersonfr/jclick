@@ -236,10 +236,15 @@ void Preferences::Store(Document *document)
 
 	std::string path = PREFERENCES_PATH(document->GetName(), "xml");
 
-	jio::File file(path);
-	file.Remove();
+	jio::File *file = jio::File::OpenDirectory(path);
+
+	file->Remove();
+
+	delete file;
+	file = NULL;
 
 	jio::FileOutputStream fos(path);
+
 	fos.Write(o.str().c_str(), o.str().size());
 	fos.Flush();
 }
