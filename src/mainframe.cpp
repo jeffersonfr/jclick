@@ -766,8 +766,6 @@ void MainFrame::Paint(jgui::Graphics *g)
 		return;
 	}
 
-	jgui::Container::Paint(g);
-
 	if (_fade >= 0) {
 		if (shutter.type == "fade") {
 			jgui::Color color(shutter.color);
@@ -808,6 +806,8 @@ void MainFrame::Paint(jgui::Graphics *g)
 
 				delete image;
 			}
+	
+			jgui::Container::Paint(g);
 		} else {
 			// INFO:: draw photo counter
 			camera_shutter_timeline_t t = __C->GetCameraShutterTimeLine();
