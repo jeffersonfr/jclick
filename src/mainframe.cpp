@@ -96,11 +96,13 @@ MainFrame::MainFrame():
 	Add(_level_frame);
 
 	// INFO:: load "loading" frames
-	jgui::Image *loading = jgui::Image::CreateImage(__C->GetResourcesPath() + "/images/loading.png");
+	camera_greetings_t greetings = __C->GetCameraGreetings();
+
+	jgui::Image *loading = jgui::Image::CreateImage(greetings.loading);
 
 	if (loading != NULL) {
 		jgui::jsize_t isize = loading->GetSize();
-		int n = 10;
+		int n = greetings.frames;
 
 		isize.width = isize.width/n;
 
@@ -918,11 +920,19 @@ void MainFrame::Run()
 
 		_thumb = i+1;
 
+		_mutex.Lock();
+
 		// INFO:: create a image to dump 
 		jgui::Image *clone = jgui::Image::CreateImage(_frame);
+		jgui::jsize_t size = _frame->GetSize();
+
+		_mutex.Unlock();
 
 		if (_borders.size() > 0) {
-			clone->GetGraphics()->DrawImage(_borders[_border_index], 0, 0, _frame->GetWidth(), _frame->GetHeight());
+			jgui::Graphics *g = clone->GetGraphics();
+
+			g->SetCompositeFlags(jgui::JCF_SRC_OVER);
+			g->DrawImage(_borders[_border_index], 0, 0, size.width, size.height);
 		}
 		
 		jgui::Image *image = clone;
@@ -952,8 +962,8 @@ void MainFrame::Run()
 		}
 
 		// process images
-		int tx = (crop.left*_frame->GetWidth())/100;
-		int ty = (crop.top*_frame->GetHeight())/100;
+		int tx = (crop.left*size.width)/100;
+		int ty = (crop.top*size.height)/100;
 
 		Command("convert \"%s/camera_%04d.ppm\" -crop %dx%d+%d+%d \"%s/camera_%04d.png\"", 
 				temporary.c_str(), i, _cregion.width-2*tx, _cregion.height-2*ty, tx, ty, temporary.c_str(), i);

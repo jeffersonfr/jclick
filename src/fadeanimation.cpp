@@ -112,7 +112,7 @@ bool FadeAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 	
 		Painter::DrawBox(g, _color, 0, gap, cmp->GetWidth(), cmp->GetHeight()-2*gap);
 
-		jgui::Image *image = jgui::Image::CreateImage(greetings.image);
+		jgui::Image *image = jgui::Image::CreateImage(greetings.background);
 		
 		g->DrawImage(image, 0, 0, cmp->GetWidth(), cmp->GetHeight()-2*gap);
 

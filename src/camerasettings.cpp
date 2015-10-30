@@ -319,7 +319,8 @@ void CameraSettings::LoadConfiguration(std::string file)
 		_camera_greetings.margin = margin;
 		_camera_greetings.bgcolor = "white";
 		_camera_greetings.fgcolor = "black";
-		_camera_greetings.image = "";
+		_camera_greetings.loading = "";
+		_camera_greetings.background = "";
 		_camera_greetings.message = "";
 		_camera_greetings.timeout = 32;
 
@@ -341,8 +342,12 @@ void CameraSettings::LoadConfiguration(std::string file)
 				_camera_greetings.bgcolor = i->second;
 			} else if (i->first == "bgcolor") {
 				_camera_greetings.fgcolor = i->second;
-			} else if (i->first == "image") {
-				_camera_greetings.image = GetFullPath(i->second);
+			} else if (i->first == "loading") {
+				_camera_greetings.loading = GetFullPath(i->second);
+			} else if (i->first == "frames") {
+				_camera_greetings.frames = atoi(i->second.c_str());
+			} else if (i->first == "background") {
+				_camera_greetings.background = GetFullPath(i->second);
 			} else if (i->first == "message") {
 				_camera_greetings.message = i->second;
 			} else if (i->first == "timeout") {

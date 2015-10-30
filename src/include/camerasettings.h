@@ -55,8 +55,10 @@ struct camera_greetings_t {
 	jgui::jinsets_t margin;
 	std::string bgcolor;
 	std::string fgcolor;
-	std::string image;
+	std::string loading;
+	std::string background;
 	std::string message;
+	int frames;
 	int timeout;
 };
 
