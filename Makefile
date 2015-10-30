@@ -98,10 +98,13 @@ install:
 	@#install -o root -g users -m 444 ./res/share/default.png $(PREFIX)/$(MODULE)
 	@sed -e 's/$$BINARY_PATH/$(subst /,\/,$(PREFIX)/bin/$(EXE))/' -e 's/$$MODULE_PATH/$(subst /,\/,$(PREFIX)/$(MODULE))/' res/share/$(MODULE).desktop > /usr/share/applications/$(MODULE).desktop
 
+service:
+	@cp res/service/service.conf /etc/init/$(MODULE).conf
+
 uninstall:
 	@read -r -p "Remover o '$(MODULE)' pode ocasionar a remoção das fotos. Deseja continuar ? [yN]" CONTINUE; \
-	if [ $$CONTINUE = "y" ] || [ $$CONTINUE = "Y" ]; then \
-		rm -rf $(PREFIX)/bin/$(EXE) $(PREFIX)/man/man1/$(MODULE).1 /etc/$(MODULE) /usr/share/applications/$(MODULE).desktop $(PREFIX)/$(MODULE); \
+	if [ $$CONTINUE ] && ([ $$CONTINUE = "y" ] || [ $$CONTINUE = "Y" ]); then \
+		rm -rf $(PREFIX)/bin/$(EXE) $(PREFIX)/man/man1/$(MODULE).1 /etc/$(MODULE) /usr/share/applications/$(MODULE).desktop $(PREFIX)/$(MODULE) /etc/init/$(MODULE).conf; \
 	fi
 
 clean:

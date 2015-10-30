@@ -58,7 +58,7 @@ std::string menu[][2] = {
 #define TEXT_SPAN			(TEXT_SIZE+GAPY)
 
 MenuFrame::MenuFrame(MainFrame *parent):
-	jgui::Panel(__L->GetParam("menuframe.title"))
+	jgui::Panel(__L->GetParam("photoframe.title"))
 {
 	jgui::jregion_t t = parent->GetVisibleBounds();
 
@@ -76,22 +76,27 @@ MenuFrame::MenuFrame(MainFrame *parent):
 	_images["hspin"] = jgui::Image::CreateImage(__C->GetResourcesPath() + "/" + "images/hspin.png");
 	_images["vspin"] = jgui::Image::CreateImage(__C->GetResourcesPath() + "/" + "images/vspin.png");
 
-	SetVisible(false);
-
 	SetBounds((t.width-t.width*0.60)/2, t.height*0.10, t.width*0.60, t.height*0.80);
+	
+	_photo_frame = new PhotoFrame(this, __C->GetPhotosPath());
+
+	Add(_photo_frame);
+
+	SetVisible(false);
 
 	Initialize();
 }
 
 MenuFrame::~MenuFrame()
 {
+	delete _photo_frame;
+	delete _current;
+
 	for (std::map<std::string, jgui::Image *>::iterator i=_images.begin(); i!=_images.end(); i++) {
 		jgui::Image *image = i->second;
 
 		delete image;
 	}
-
-	delete _current;
 }
 
 void MenuFrame::OnAction(std::string state, std::string id, int options_index)
@@ -134,7 +139,9 @@ void MenuFrame::OnAction(std::string state, std::string id, int options_index)
 		}
 	} else if (state == "menu.media") {
 		if (options_index == 0) {
-			_current = new PhotoFrame(__C->GetPhotosPath());
+			_state = "menu.media.photo";
+			_photo_frame->Update();
+			_photo_frame->SetVisible(true);
 		}
 	} else if (state == "menu.system") {
 		if (options_index == 4) {
@@ -429,7 +436,7 @@ void MenuFrame::Initialize()
 
 bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 {
-	if (jgui::Component::KeyPressed(event) == true) {
+	if (_photo_frame->IsVisible() == true && _photo_frame->KeyPressed(event) == true) {
 		return true;
 	}
 
@@ -442,7 +449,7 @@ bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 
 		_state = _state.substr(0, _state.rfind("."));
 
-		Repaint();
+		// Repaint();
 	} else if (_state == "main") {
 		if (event->GetSymbol() == jgui::JKS_M || event->GetSymbol() == jgui::JKS_m) {
 			_index = 0;
@@ -509,7 +516,7 @@ bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 		SetTitle(__L->GetParam("menuframe.system.title"));
 	}
 
-	Repaint();
+	// Repaint();
 
 	return true;
 }
@@ -547,9 +554,9 @@ void MenuFrame::DrawMenu(jgui::Graphics *g)
 
 void MenuFrame::Paint(jgui::Graphics *g)
 {
-	jgui::Panel::Paint(g);
-
 	jthread::AutoLock lock(&_mutex);
+	
+	jgui::Panel::Paint(g);
 
 	if (_state == "menu") {
 		DrawMenu(g);

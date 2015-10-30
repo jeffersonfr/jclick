@@ -13,6 +13,7 @@
 #include "jstringutils.h"
 #include "jplayermanager.h"
 #include "jvideodevicecontrol.h"
+#include "jvideosizecontrol.h"
 #include "jdebug.h"
 
 #include <sstream>
@@ -126,6 +127,8 @@ MainFrame::MainFrame():
 
 MainFrame::~MainFrame()
 {
+	delete _menu_frame;
+	delete _level_frame;
 	delete _current;
 	delete _theme;
 	delete _player;
@@ -468,6 +471,12 @@ void MainFrame::Initialize()
 	
 	jgui::jsize_t size = __C->GetCameraMode();
 
+	jmedia::VideoSizeControl *control = (jmedia::VideoSizeControl *)_grabber->GetControl("video.size");
+	
+	if (control != NULL) {
+		control->SetSize(size.width, size.height);
+	}
+
 	_grabber->RegisterFrameGrabberListener(this);
 	_grabber->Play();
 	
@@ -526,7 +535,11 @@ bool MainFrame::MouseWheel(jgui::MouseEvent *event)
 
 bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 {
-	if (jgui::Frame::KeyPressed(event) == true) {
+	if (_menu_frame->IsVisible() == true && _menu_frame->KeyPressed(event) == true) {
+		return true;
+	}
+
+	if (_level_frame->IsVisible() == true && _level_frame->KeyPressed(event) == true) {
 		return true;
 	}
 
@@ -560,7 +573,6 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 	} else if (event->GetSymbol() == jgui::JKS_m || event->GetSymbol() == jgui::JKS_M) {
 		// _current = new MenuFrame(this);
 		_menu_frame->SetVisible(true);
-		_menu_frame->RequestFocus();
 	} else if (event->GetSymbol() == jgui::JKS_q || event->GetSymbol() == jgui::JKS_Q) {
 		ReleaseAll();
 	} else if (event->GetSymbol() == jgui::JKS_r || event->GetSymbol() == jgui::JKS_R) {
@@ -595,6 +607,8 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 		CTRL_DN(jmedia::JVC_SATURATION);
 	} else if (event->GetSymbol() == jgui::JKS_S) {
 		CTRL_UP(jmedia::JVC_SATURATION);
+	} else {
+		return false;
 	}
 
 #ifndef CAMERA_ENABLED
@@ -923,7 +937,7 @@ void MainFrame::Run()
 		_mutex.Lock();
 
 		// INFO:: create a image to dump 
-		jgui::Image *clone = jgui::Image::CreateImage(_frame);
+		jgui::Image *clone = dynamic_cast<jgui::Image *>(_frame->Clone());
 		jgui::jsize_t size = _frame->GetSize();
 
 		_mutex.Unlock();

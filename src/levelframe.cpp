@@ -29,9 +29,8 @@ LevelFrame::LevelFrame(jgui::Container *parent):
 	_level = 0;
 	_timeout = 0;
 
-	SetFocusable(false);
-	SetVisible(false);
 	SetBounds((t.width-t.width/2)/2, t.height-t.height/3, t.width/2, t.height/4);
+	SetVisible(false);
 }
 
 LevelFrame::~LevelFrame()

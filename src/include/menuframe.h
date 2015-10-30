@@ -1,6 +1,7 @@
 #ifndef __MENUFRAME_PHOTOBOOTH_H
 #define __MENUFRAME_PHOTOBOOTH_H
 
+#include "photoframe.h"
 #include "jpanel.h"
 #include "jthread.h"
 #include "jsemaphore.h"
@@ -39,12 +40,13 @@ class MenuFrame : public jgui::Panel, public jcommon::DataListener {
 		jthread::Mutex _mutex;
 		jgui::Window *_current;
 		MainFrame *_frame;
+		PhotoFrame *_photo_frame;
 		std::string _state;
-		int _index,
-				_camera_index,
-				_image_index,
-				_media_index,
-				_system_index;
+		int _index;
+		int _camera_index;
+		int _image_index;
+		int _media_index;
+		int _system_index;
 
 	public:
 		MenuFrame(MainFrame *frame);

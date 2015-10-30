@@ -35,16 +35,31 @@ struct ascending_sort {
 	}
 };
 
-PhotoFrame::PhotoFrame(std::string path):
-	jgui::Frame(__L->GetParam("photoframe.title"))
+PhotoFrame::PhotoFrame(jgui::Container *parent, std::string path):
+	jgui::Panel(__L->GetParam("photoframe.title"))
 {
 	_path = path;
 	_index = -1;
-	_message =  "Insert a device with photos";
+	_message = "No photos in device !";
+
+	Update();
+	
+	SetBounds(0, 0, parent->GetWidth(), parent->GetHeight());
+	SetVisible(false);
+}
+
+PhotoFrame::~PhotoFrame()
+{
+}
+
+void PhotoFrame::Update()
+{
+	_index = -1;
+	_message = "No photos in device !";
 
 	std::vector<std::string> files;
 
-	jio::File *file = jio::File::OpenDirectory(path);
+	jio::File *file = jio::File::OpenDirectory(_path);
 
 	if (file != NULL) {
 		file->ListFiles(&files);
@@ -53,8 +68,10 @@ PhotoFrame::PhotoFrame(std::string path):
 		file = NULL;
 	}
 
+	_images.clear();
+
 	for (std::vector<std::string>::iterator i=files.begin(); i!=files.end(); i++) {
-		std::string filepath = path + "/" + (*i);
+		std::string filepath = _path + "/" + (*i);
 
 		try {
 			file = jio::File::OpenFile(filepath);
@@ -86,14 +103,14 @@ PhotoFrame::PhotoFrame(std::string path):
 	}
 }
 
-PhotoFrame::~PhotoFrame()
-{
-}
-
 bool PhotoFrame::KeyPressed(jgui::KeyEvent *event)
 {
-	if (jgui::Frame::KeyPressed(event) == true) {
-		return true;
+	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT) || event->GetSymbol() == jgui::JKS_BACKSPACE;
+
+	if (exit == true) {
+		SetVisible(false);
+
+		return false;
 	}
 
 	int old = _index;
@@ -117,7 +134,7 @@ bool PhotoFrame::KeyPressed(jgui::KeyEvent *event)
 
 void PhotoFrame::Paint(jgui::Graphics *g)
 {
-	jgui::Frame::Paint(g);
+	jgui::Panel::Paint(g);
 
 	jgui::jregion_t bounds = GetVisibleBounds();
 	jgui::jinsets_t insets = GetInsets();
