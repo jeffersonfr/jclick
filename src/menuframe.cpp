@@ -148,6 +148,8 @@ void MenuFrame::OnAction(std::string state, std::string id, int options_index)
 			jgui::FileChooserDialogBox *frame = new jgui::FileChooserDialogBox(__L->GetParam("menuframe.system.load_configuration"), __C->GetResourcesPath());
 			jgui::jregion_t t = frame->GetVisibleBounds();
 			
+			frame->SetExtensionIgnoreCase(true);
+			frame->AddExtension("conf");
 			frame->SetLocation((_location.x-t.x)/2, (_location.y-t.y)/2);
 			frame->GetParams()->SetTextParam("id", "loadconf");
 			frame->RegisterDataListener(this);
@@ -178,6 +180,10 @@ void MenuFrame::DataChanged(jcommon::ParamMapper *params)
 		std::string directory = params->GetTextParam("directory");
 		std::string filepath = params->GetTextParam("filepath");
 
+		if (filepath.empty() == true || filepath.find(".conf") == std::string::npos) {
+			return;
+		}
+
 		__C->SetTextParam("config.directory", directory);
 
 		try {
@@ -187,7 +193,7 @@ void MenuFrame::DataChanged(jcommon::ParamMapper *params)
 		} catch (jcommon::RuntimeException &e) {
 			jgui::MessageDialogBox msg(__L->GetParam("warning_label"), e.what());
 
-			msg.Show();
+			msg.Show(true);
 		}
 	}
 	

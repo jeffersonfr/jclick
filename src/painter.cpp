@@ -95,6 +95,10 @@ void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgu
 
 	jgui::Font *font = _fonts[font_index];
 
+	if (font == NULL) {
+		return;
+	}
+
 	g->SetFont(font);
 
 	if (ss > 0) {
@@ -109,7 +113,6 @@ void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgu
 void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::Color color, int x, int y, int w, int h, jgui::jhorizontal_align_t halign, jgui::jvertical_align_t valign, const char *fmt, ...)
 {
 	int ss = shadow_size/2;
-
 	int tmp_size = 4096;
 	char tmp[tmp_size];
 	va_list va;
@@ -119,6 +122,10 @@ void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgu
 	va_end(va);
 
 	jgui::Font *font = _fonts[font_index];
+
+	if (font == NULL) {
+		return;
+	}
 
 	g->SetFont(font);
 

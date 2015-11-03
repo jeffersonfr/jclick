@@ -96,26 +96,6 @@ MainFrame::MainFrame():
 	Add(_menu_frame);
 	Add(_level_frame);
 
-	// INFO:: load "loading" frames
-	camera_greetings_t greetings = __C->GetCameraGreetings();
-
-	jgui::Image *loading = jgui::Image::CreateImage(greetings.loading);
-
-	if (loading != NULL) {
-		jgui::jsize_t isize = loading->GetSize();
-		int n = greetings.frames;
-
-		isize.width = isize.width/n;
-
-		for (int i=0; i<n; i++) {
-			_loading_frames.push_back(loading->Crop(i*isize.width, 0, isize.width, isize.height));
-		}
-
-		delete loading;
-	}
-
-	_loading_index = 0;
-
 	SetBackgroundVisible(false);
 	SetUndecorated(true);
 	SetDefaultExitEnabled(false);
@@ -240,6 +220,34 @@ void MainFrame::LoadResources()
 			JDEBUG(JERROR, "Camera Shutter Timeline:: image \"%s\" is corrupted or inexistent\n", timeline.image.c_str());
 		}
 	}
+	
+	// INFO:: load "loading" frames
+	camera_greetings_t greetings = __C->GetCameraGreetings();
+
+	for (int i=0; i<_loading_frames.size(); i++) {
+		jgui::Image *image = _loading_frames[i];
+
+		delete image;
+	}
+
+	_loading_frames.clear();
+
+	jgui::Image *loading = jgui::Image::CreateImage(greetings.loading);
+
+	if (loading != NULL) {
+		jgui::jsize_t isize = loading->GetSize();
+		int n = greetings.frames;
+
+		isize.width = isize.width/n;
+
+		for (int i=0; i<n; i++) {
+			_loading_frames.push_back(loading->Crop(i*isize.width, 0, isize.width, isize.height));
+		}
+
+		delete loading;
+	}
+
+	_loading_index = 0;
 }
 
 jgui::jregion_t MainFrame::GetFrameBounds()
@@ -1002,6 +1010,7 @@ void MainFrame::Run()
 		if (i < dst.size()) {
 			camera_photo_t t = dst[i];
 
+			// INFO:: zindex stacks the frames over each other
 			Command("convert \"%s/background.png\" -draw \"Translate %d,%d Rotate %d Image Over 0,0 %d,%d '%s/camera_%04d.png'\" \"%s/background.png\"", 
 					temporary.c_str(), t.region.x, t.region.y, t.degrees, t.region.width, t.region.height, temporary.c_str(), i, temporary.c_str());
 		}
