@@ -223,10 +223,9 @@ void CameraSettings::LoadConfiguration(std::string file)
 
 		_camera_shutter.type = "fade";
 		_camera_shutter.color = "white";
-		_camera_shutter.image = "";
-		_camera_shutter.cols = 1;
-		_camera_shutter.rows = 1;
-		_camera_shutter.step = 20;
+		_camera_shutter.file = "";
+		_camera_shutter.sound = "";
+		_camera_shutter.step = 1;
 		_camera_shutter.delay= 0;
 		_camera_shutter.range_min = 1;
 		_camera_shutter.range_max = 1;
@@ -237,20 +236,13 @@ void CameraSettings::LoadConfiguration(std::string file)
 			} else if (i->first == "color") {
 				_camera_shutter.color = i->second;
 			} else if (i->first == "file") {
-				_camera_shutter.image = GetFullPath(i->second);
+				_camera_shutter.file = GetFullPath(i->second);
+			} else if (i->first == "sound") {
+				_camera_shutter.sound = GetFullPath(i->second);
 			} else if (i->first == "step") {
 				_camera_shutter.step = atoi(i->second.c_str());
 			} else if (i->first == "delay") {
 				_camera_shutter.delay = atoi(i->second.c_str());
-			} else if (i->first == "frames") {
-				jcommon::StringTokenizer tokens(i->second, ",");
-
-				if (tokens.GetSize() != 2) {
-					throw jcommon::RuntimeException("Parser failed [camera.shutter]: " + GetTextParam("camera.shutter"));
-				}
-
-				_camera_shutter.rows = atoi(tokens.GetToken(0).c_str());
-				_camera_shutter.cols = atoi(tokens.GetToken(1).c_str());
 			} else if (i->first == "range") {
 				// INFO:: range [1 .. n]
 				jcommon::StringTokenizer tokens(i->second, ",");
@@ -268,20 +260,20 @@ void CameraSettings::LoadConfiguration(std::string file)
 		}
 	}
 
-	// load camera shutter timeline
+	// load camera timeline
 	{
-		std::map<std::string, std::string> params = GetParams(GetTextParam("camera.shutter.timeline"));
+		std::map<std::string, std::string> params = GetParams(GetTextParam("camera.timeline"));
 
-		_camera_shutter_timeline.color = "white";
-		_camera_shutter_timeline.image = "";
-		_camera_shutter_timeline.size.width = 64;
-		_camera_shutter_timeline.size.height = 64;
+		_camera_timeline.color = "white";
+		_camera_timeline.image = "";
+		_camera_timeline.size.width = 64;
+		_camera_timeline.size.height = 64;
 
 		for (std::map<std::string, std::string>::iterator i=params.begin(); i!=params.end(); i++) {
 			if (i->first == "color") {
-				_camera_shutter_timeline.color = i->second;
+				_camera_timeline.color = i->second;
 			} else if (i->first == "image") {
-				_camera_shutter_timeline.image = GetFullPath(i->second);
+				_camera_timeline.image = GetFullPath(i->second);
 			} else if (i->first == "size") {
 				jcommon::StringTokenizer tokens(i->second, "x");
 				
@@ -289,20 +281,10 @@ void CameraSettings::LoadConfiguration(std::string file)
 					throw jcommon::RuntimeException("Parser failed [camera.shutter.timeline]: " + GetTextParam("camera.shutter.timeline"));
 				}
 
-				_camera_shutter_timeline.size.width = atoi(tokens.GetToken(0).c_str());
-				_camera_shutter_timeline.size.height = atoi(tokens.GetToken(1).c_str());
+				_camera_timeline.size.width = atoi(tokens.GetToken(0).c_str());
+				_camera_timeline.size.height = atoi(tokens.GetToken(1).c_str());
 			}
 		}
-	}
-
-	// load camera shutter sound
-	{
-		_shutter_sound = GetFullPath(jcommon::StringUtils::Trim(GetTextParam("camera.shutter.sound"), "'\""));
-	}
-
-	// load camera shutter sound
-	{
-		_shutter_sound = GetFullPath(jcommon::StringUtils::Trim(GetTextParam("camera.shutter.sound"), "'\""));
 	}
 
 	// load camera greetings
@@ -344,8 +326,6 @@ void CameraSettings::LoadConfiguration(std::string file)
 				_camera_greetings.fgcolor = i->second;
 			} else if (i->first == "loading") {
 				_camera_greetings.loading = GetFullPath(i->second);
-			} else if (i->first == "frames") {
-				_camera_greetings.frames = atoi(i->second.c_str());
 			} else if (i->first == "background") {
 				_camera_greetings.background = GetFullPath(i->second);
 			} else if (i->first == "message") {
@@ -584,12 +564,7 @@ camera_shutter_t & CameraSettings::GetCameraShutter()
 
 camera_shutter_timeline_t & CameraSettings::GetCameraShutterTimeLine()
 {
-	return _camera_shutter_timeline;
-}
-
-std::string CameraSettings::GetCameraShutterSound()
-{
-	return _shutter_sound;
+	return _camera_timeline;
 }
 
 camera_greetings_t & CameraSettings::GetCameraGreetings()

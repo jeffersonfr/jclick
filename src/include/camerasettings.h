@@ -36,9 +36,8 @@ struct camera_compose_t {
 struct camera_shutter_t {
 	std::string type;
 	std::string color;
-	std::string image;
-	int cols;
-	int rows;
+	std::string file;
+	std::string sound;
 	int step;
 	int delay;
 	int range_min;
@@ -58,7 +57,6 @@ struct camera_greetings_t {
 	std::string loading;
 	std::string background;
 	std::string message;
-	int frames;
 	int timeout;
 };
 
@@ -77,14 +75,13 @@ class CameraSettings : public jcommon::ParamMapper {
 		camera_animation_t _camera_animation;
 		camera_compose_t _image_compose;
 		camera_shutter_t _camera_shutter;
-		camera_shutter_timeline_t _camera_shutter_timeline;
+		camera_shutter_timeline_t _camera_timeline;
 		camera_greetings_t _camera_greetings;
 		jgui::jinsets_t _image_crop;
 		jgui::jinsets_t _camera_viewport;
 		jgui::jsize_t _camera_mode;
 		std::string _config_file;
 		std::string _image_format;
-		std::string _shutter_sound;
 		int _camera_delay;
 		int _camera_interval;
 		int _image_count;
@@ -118,7 +115,6 @@ class CameraSettings : public jcommon::ParamMapper {
 		camera_animation_t & GetCameraAnimation();
 		camera_shutter_t & GetCameraShutter();
 		camera_shutter_timeline_t & GetCameraShutterTimeLine();
-		std::string GetCameraShutterSound();
 		camera_greetings_t & GetCameraGreetings();
 		camera_input_t & GetCameraInput();
 		jgui::jsize_t & GetCameraMode();

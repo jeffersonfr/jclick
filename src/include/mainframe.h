@@ -33,8 +33,8 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public jmedia::Fra
 		jgui::Window *_current;
 		MenuFrame *_menu_frame;
 		LevelFrame *_level_frame;
-		jmedia::Player *_grabber;
-		jmedia::Player *_player;
+		jmedia::Player *_audio_player;
+		jmedia::Player *_grabber_player;
 		Animation *_animation;
 		jgui::Image *_frame;
 		jgui::jsize_t _screen;

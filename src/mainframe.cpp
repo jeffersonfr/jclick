@@ -64,9 +64,9 @@ MainFrame::MainFrame():
 	jipc::RemoteCallListener()
 {
 	_current = NULL;
-	_player = NULL;
+	_audio_player = NULL;
+	_grabber_player = NULL;
 	_animation = NULL;
-	_grabber = NULL;
 	_frame = NULL;
 	_thumb = 0;
 	_border_index = 0;
@@ -111,22 +111,23 @@ MainFrame::~MainFrame()
 	delete _level_frame;
 	delete _current;
 	delete _theme;
-	delete _player;
 	delete _frame;
-	delete _grabber;
+	delete _audio_player;
+	delete _grabber_player;
 	delete _animation;
+}
+
+static bool ascending_sort(const std::string &a, const std::string &b)
+{
+	if (a > b) {
+		return false;
+	}
+
+	return true;
 }
 
 void MainFrame::LoadResources()
 {
-	// load shutter sound
-	if (_player != NULL) {
-		delete _player;
-		_player = NULL;
-	}
-
-	_player = jmedia::PlayerManager::CreatePlayer(__C->GetCameraShutterSound());
-
 	// load frames borders
 	std::vector<std::string> files;
 
@@ -164,6 +165,12 @@ void MainFrame::LoadResources()
 
 	camera_shutter_t shutter = __C->CameraSettings::GetCameraShutter();
 
+	if (_audio_player != NULL) {
+		delete _audio_player;
+	}
+
+	_audio_player = jmedia::PlayerManager::CreatePlayer(__C->GetCameraShutter().sound);
+
 	for (int i=0; i<_shutter_frames.size(); i++) {
 		jgui::Image *image = _shutter_frames[i];
 
@@ -173,23 +180,36 @@ void MainFrame::LoadResources()
 	_shutter_frames.clear();
 
 	if (shutter.type == "image") {
-		jgui::Image *image = jgui::Image::CreateImage(shutter.image);
+		jio::File *dir = jio::File::OpenDirectory(shutter.file);
 
-		if (image != NULL) {
-			jgui::jsize_t isize = image->GetSize();
-			int iw = isize.width/shutter.cols;
-			int ih = isize.height/shutter.rows;
+		if (dir == NULL) {
+			jgui::Image *image = jgui::Image::CreateImage(shutter.file);
 
-			for (int i=0; i<shutter.cols*shutter.rows; i++) {
-				int x = fmod(i, isize.width/iw);
-				int y = floor(i*iw/isize.width);
+			if (image != NULL) {
+				_shutter_frames.push_back(image);
+			} else {
+				JDEBUG(JERROR, "Camera Shutter:: image \"%s\" is corrupted or inexistent\n", shutter.file.c_str());
+			}
+		} else {
+			std::vector<std::string> files;
 
-				_shutter_frames.push_back(image->Crop(x*iw, y*ih, iw, ih));
+			dir->ListFiles(&files);
+
+			std::sort(files.begin(), files.end(), ascending_sort);
+
+			for (std::vector<std::string>::iterator i=files.begin(); i!=files.end(); i++) {
+				jgui::Image *image = jgui::Image::CreateImage(shutter.file + "/" + (*i));
+
+				if (image != NULL) {
+					_shutter_frames.push_back(image);
+				}
 			}
 
-			delete image;
-		} else {
-			JDEBUG(JERROR, "Camera Shutter:: image \"%s\" is corrupted or inexistent\n", shutter.image.c_str());
+			if (_shutter_frames.size() == 0) {
+				JDEBUG(JERROR, "Camera Shutter:: image directory \"%s\" does not have any image\n", shutter.file.c_str());
+			}
+
+			delete dir;
 		}
 	}
 	
@@ -232,19 +252,36 @@ void MainFrame::LoadResources()
 
 	_loading_frames.clear();
 
-	jgui::Image *loading = jgui::Image::CreateImage(greetings.loading);
+	jio::File *dir = jio::File::OpenDirectory(greetings.loading);
 
-	if (loading != NULL) {
-		jgui::jsize_t isize = loading->GetSize();
-		int n = greetings.frames;
+	if (dir == NULL) {
+		jgui::Image *image = jgui::Image::CreateImage(greetings.loading);
 
-		isize.width = isize.width/n;
+		if (image != NULL) {
+			_loading_frames.push_back(image);
+		} else {
+			JDEBUG(JERROR, "Camera Shutter:: image \"%s\" is corrupted or inexistent\n", greetings.loading.c_str());
+		}
+	} else {
+		std::vector<std::string> files;
 
-		for (int i=0; i<n; i++) {
-			_loading_frames.push_back(loading->Crop(i*isize.width, 0, isize.width, isize.height));
+		dir->ListFiles(&files);
+
+		std::sort(files.begin(), files.end(), ascending_sort);
+
+		for (std::vector<std::string>::iterator i=files.begin(); i!=files.end(); i++) {
+			jgui::Image *image = jgui::Image::CreateImage(greetings.loading + "/" + (*i));
+
+			if (image != NULL) {
+				_loading_frames.push_back(image);
+			}
 		}
 
-		delete loading;
+		if (_loading_frames.size() == 0) {
+			JDEBUG(JERROR, "Camera Shutter:: image directory \"%s\" does not have any image\n", greetings.loading.c_str());
+		}
+
+		delete dir;
 	}
 
 	_loading_index = 0;
@@ -473,20 +510,20 @@ void MainFrame::Initialize()
 	_screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
 
 #ifdef CAMERA_ENABLED
-	_grabber = jmedia::PlayerManager::CreatePlayer(std::string("v4l2:") + __C->GetTextParam("camera.device")); 
+	_grabber_player = jmedia::PlayerManager::CreatePlayer(std::string("v4l2:") + __C->GetTextParam("camera.device")); 
 
-	// TODO:: _grabber->Configure(size.width, size.height);
+	// TODO:: _grabber_player->Configure(size.width, size.height);
 	
 	jgui::jsize_t size = __C->GetCameraMode();
 
-	jmedia::VideoSizeControl *control = (jmedia::VideoSizeControl *)_grabber->GetControl("video.size");
+	jmedia::VideoSizeControl *control = (jmedia::VideoSizeControl *)_grabber_player->GetControl("video.size");
 	
 	if (control != NULL) {
 		control->SetSize(size.width, size.height);
 	}
 
-	_grabber->RegisterFrameGrabberListener(this);
-	_grabber->Play();
+	_grabber_player->RegisterFrameGrabberListener(this);
+	_grabber_player->Play();
 	
 	ResetControlValues();
 #endif
@@ -686,11 +723,11 @@ void MainFrame::ShowControlStatus(jmedia::jvideo_control_t id)
 
 int MainFrame::GetControlValue(jmedia::jvideo_control_t id)
 {
-	if (_grabber == NULL) {
+	if (_grabber_player == NULL) {
 		return 0;
 	}
 
-	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber->GetControl("video.device");
+	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber_player->GetControl("video.device");
 	
 	if (control != NULL) {
 		return control->GetValue(id);
@@ -701,7 +738,7 @@ int MainFrame::GetControlValue(jmedia::jvideo_control_t id)
 
 void MainFrame::SetControlValue(jmedia::jvideo_control_t id, int value)
 {
-	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber->GetControl("video.device");
+	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber_player->GetControl("video.device");
 	
 	if (control != NULL) {
 		control->SetValue(id, value);
@@ -712,7 +749,7 @@ void MainFrame::SetControlValue(jmedia::jvideo_control_t id, int value)
 
 void MainFrame::ResetControlValues()
 {
-	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber->GetControl("video.device");
+	jmedia::VideoDeviceControl *control = (jmedia::VideoDeviceControl *)_grabber_player->GetControl("video.device");
 	
 	if (control != NULL) {
 		std::vector<jmedia::jvideo_control_t> controls = control->GetControls();
@@ -798,25 +835,19 @@ void MainFrame::Paint(jgui::Graphics *g)
 
 			g->SetColor(color);
 			g->FillRectangle(_fregion.x, _fregion.y, _fregion.width, _fregion.height);
-
-			_fade = _fade + shutter.step;
-
-			if (_fade >= shutter.range_max) {
-				_fade = -1;
-			}
-
-			usleep(shutter.delay*1000);
 		} else if (shutter.type == "image") {
+			shutter.range_max = _shutter_frames.size();
+
 			g->DrawImage(_shutter_frames[_fade], _fregion.x, _fregion.y, _fregion.width, _fregion.height);
-
-			_fade = _fade + shutter.step;
-
-			if (_fade > shutter.range_max) {
-				_fade = -1;
-			}
-
-			usleep(shutter.delay*1000);
 		} 
+
+		usleep(shutter.delay*1000);
+
+		_fade = _fade + shutter.step;
+
+		if (_fade >= shutter.range_max) {
+			_fade = -1;
+		}
 
 		if (_fade < 0) {
 			_sem_lock.Notify();
@@ -971,8 +1002,8 @@ void MainFrame::Run()
 
 		_fade = shutter.range_min;
 		
-		if (_player != NULL) {
-			_player->Play();
+		if (_audio_player != NULL) {
+			_audio_player->Play();
 		}
 
 		_sem_lock.Wait();
