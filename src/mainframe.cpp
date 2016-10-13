@@ -107,13 +107,19 @@ MainFrame::MainFrame():
 
 MainFrame::~MainFrame()
 {
+	if (_grabber_player != NULL) {
+		_grabber_player->RemoveFrameGrabberListener(this);
+
+		_grabber_player->Stop();
+		delete _grabber_player;
+	}
+
 	delete _menu_frame;
 	delete _level_frame;
 	delete _current;
 	delete _theme;
 	delete _frame;
 	delete _audio_player;
-	delete _grabber_player;
 	delete _animation;
 }
 

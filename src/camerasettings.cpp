@@ -103,7 +103,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 
 	p.Load(_config_file);
 
-	std::vector<std::string> v = p.GetProperties();
+	std::map<std::string, std::string> v = p.GetParameters();
 
 	std::string dir = GetTextParam("config.directory");
 
@@ -111,8 +111,8 @@ void CameraSettings::LoadConfiguration(std::string file)
 
 	SetTextParam("config.directory", dir);
 
-	for (std::vector<std::string>::iterator i=v.begin(); i!=v.end(); i++) {
-		SetTextParam(*i, p.GetPropertyByName(*i));
+	for (std::map<std::string, std::string>::iterator i=v.begin(); i!=v.end(); i++) {
+		SetTextParam(i->first, i->second);
 	}
 
 	// load screen saver
@@ -629,7 +629,7 @@ void CameraSettings::SetCameraViewport(jgui::jinsets_t insets)
 
 	try {
 		p.Load(_config_file);
-		p.SetPropertyByName("camera.viewport", tmp);
+		p.SetTextParam("camera.viewport", tmp);
 		p.Save();
 	} catch (jcommon::RuntimeException &e) {
 	}
@@ -646,7 +646,7 @@ void CameraSettings::SetSourceCrop(jgui::jinsets_t insets)
 
 	try {
 		p.Load(_config_file);
-		p.SetPropertyByName("image.crop", tmp);
+		p.SetTextParam("image.crop", tmp);
 		p.Save();
 	} catch (jcommon::RuntimeException &e) {
 	}
@@ -658,7 +658,7 @@ void CameraSettings::SetSystemLanguage(std::string language)
 
 	try {
 		p.Load(_config_file);
-		p.SetPropertyByName("system.language", std::string("\"") + language + "\"");
+		p.SetTextParam("system.language", std::string("\"") + language + "\"");
 		p.Save();
 	} catch (jcommon::RuntimeException &e) {
 	}
@@ -672,7 +672,7 @@ void CameraSettings::SetCameraViewportAspect(std::string aspect)
 
 	try {
 		p.Load(_config_file);
-		p.SetPropertyByName("camera.viewport.aspect", std::string("\"") + aspect + "\"");
+		p.SetTextParam("camera.viewport.aspect", std::string("\"") + aspect + "\"");
 		p.Save();
 	} catch (jcommon::RuntimeException &e) {
 	}
@@ -686,7 +686,7 @@ void CameraSettings::SetImageFormat(std::string format)
 
 	try {
 		p.Load(_config_file);
-		p.SetPropertyByName("image.format", std::string("\"") + format + "\"");
+		p.SetTextParam("image.format", std::string("\"") + format + "\"");
 		p.Save();
 	} catch (jcommon::RuntimeException &e) {
 	}
