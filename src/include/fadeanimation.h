@@ -17,7 +17,7 @@ class FadeAnimation : public Animation {
 		int _progress;
 
 	public:
-		FadeAnimation();
+		FadeAnimation(std::vector<std::string> images);
 
 		virtual ~FadeAnimation();
 

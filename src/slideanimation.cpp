@@ -11,7 +11,7 @@
 
 #define SLIDEANIMATION_STEP	32
 
-SlideAnimation::SlideAnimation():
+SlideAnimation::SlideAnimation(std::vector<std::string> images):
 	Animation()
 {
 	jgui::jsize_t screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
@@ -51,8 +51,7 @@ SlideAnimation::SlideAnimation():
 	g->FillRectangle(0, 0, _frames->GetWidth(), _frames->GetHeight());
 
 	for (int i=0; i<count; i++) {
-		std::string path = jcommon::StringUtils::Format("%s/camera_%04d.png", temporary.c_str(), i);
-		jgui::Image *image = jgui::Image::CreateImage(path);
+		jgui::Image *image = jgui::Image::CreateImage(temporary + "/" + images[i]);
 		jgui::jsize_t size = image->GetSize();
 	
 		int iw = size.width;

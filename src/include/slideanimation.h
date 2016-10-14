@@ -14,7 +14,7 @@ class SlideAnimation : public Animation {
 		int _progress;
 
 	public:
-		SlideAnimation();
+		SlideAnimation(std::vector<std::string> images);
 
 		virtual ~SlideAnimation();
 

@@ -7,13 +7,13 @@
 
 #define GRIDANIMATION_STEP	16
 
-GridAnimation::GridAnimation():
+GridAnimation::GridAnimation(std::vector<std::string> images):
 	Animation()
 {
 	jgui::jsize_t screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
 	jgui::jinsets_t crop = __C->GetSourceCrop();
 	std::string temporary = __C->GetTempPath();
-	int count = __C->GetThumbsCount();
+	int count = images.size(); // __C->GetThumbsCount();
 	camera_greetings_t greetings = __C->GetCameraGreetings();
 	int
 		iw = 16, 
@@ -49,7 +49,7 @@ GridAnimation::GridAnimation():
 
 	/*
 	for (int i=0; i<count; i++) {
-		sprintf(tmp, "%s/camera_%04d.png", temporary.c_str(), i);
+		sprintf(tmp, "%s/%s", temporary.c_str(), images[i]);
 
 		if ((void *)_frames == NULL) {
 			_frames = jgui::Image::CreateImage(count*(screen.width+gapx)-gapx, screen.height, jgui::JPF_ARGB);

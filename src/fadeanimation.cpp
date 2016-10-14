@@ -8,18 +8,18 @@
 
 #define FADEANIMATION_STEP	16
 
-FadeAnimation::FadeAnimation():
+FadeAnimation::FadeAnimation(std::vector<std::string> images):
 	Animation()
 {
+		printf(":::::::: 01:: %d\n", images.size());
 	jgui::jsize_t screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
 	jgui::jinsets_t crop = __C->GetSourceCrop();
 	std::string temporary = __C->GetTempPath();
 	camera_greetings_t greetings = __C->GetCameraGreetings();
-	int count = __C->GetThumbsCount();
+	int count = images.size(); // __C->GetThumbsCount();
 	int 
 		iw = 16, 
 		ih = 16;
-	char tmp[1024];
 
 	_state = 0;
 	_progress = 0; 
@@ -30,10 +30,9 @@ FadeAnimation::FadeAnimation():
 	screen.width = (screen.width - crop.left - crop.right) / 2;
 	screen.height = (screen.height - crop.top - crop.bottom) / 2;
 
+		printf(":::::::: 02:: %d\n", images.size());
 	for (int i=0; i<count; i++) {
-		sprintf(tmp, "%s/camera_%04d.png", temporary.c_str(), i);
-
-		jgui::Image *frame = jgui::Image::CreateImage(tmp);
+		jgui::Image *frame = jgui::Image::CreateImage(temporary + "/" + images[i]);
 
 		_frames.push_back(frame);
 	}

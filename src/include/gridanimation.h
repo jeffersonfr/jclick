@@ -13,7 +13,7 @@ class GridAnimation : public Animation {
 		int _progress;
 
 	public:
-		GridAnimation();
+		GridAnimation(std::vector<std::string> images);
 
 		virtual ~GridAnimation();
 

@@ -961,6 +961,8 @@ void MainFrame::Run()
 			compose.size.width, compose.size.height, compose.color.c_str(), compose.size.width, compose.size.height, temporary.c_str());
 	}
 
+	std::vector<std::string> images;
+
 	for (int i=0; i<__C->GetThumbsCount(); i++) {
 		_thumb = i;
 
@@ -1002,9 +1004,11 @@ void MainFrame::Run()
 			delete clone;
 		}
 
-		image->GetGraphics()->Dump(temporary, "camera");
+		std::string temp = image->GetGraphics()->Dump("/tmp/clickpb", "camera");
 
 		delete image;
+
+		images.push_back(temp);
 
 		_fade = shutter.range_min;
 		
@@ -1024,8 +1028,8 @@ void MainFrame::Run()
 		int tx = (crop.left*size.width)/100;
 		int ty = (crop.top*size.height)/100;
 
-		Command("convert \"%s/camera_%04d.ppm\" -crop %dx%d+%d+%d \"%s/camera_%04d.png\"", 
-				temporary.c_str(), i, _cregion.width-2*tx, _cregion.height-2*ty, tx, ty, temporary.c_str(), i);
+		Command("mogrify \"%s/%s\" -crop %dx%d+%d+%d", 
+				temporary.c_str(), temp.c_str(), _cregion.width-2*tx, _cregion.height-2*ty, tx, ty);
 
 		if (_running == false) {
 			goto _run_cleanup;
@@ -1035,8 +1039,8 @@ void MainFrame::Run()
 			if (i < dst.size()) {
 				camera_photo_t t = dst[i];
 
-				Command("convert -size %dx%d xc:%s \"%s/camera_%04d.png\" -geometry %dx%d -gravity center -composite \"%s/camera_%04d.png\"", 
-						t.region.width, t.region.height, compose.color.c_str(), temporary.c_str(), i, t.region.width, t.region.height, temporary.c_str(), i);
+				Command("convert -size %dx%d xc:%s \"%s/camera_%04d.png\" -geometry %dx%d -gravity center -composite \"%s/%s\"", 
+						t.region.width, t.region.height, compose.color.c_str(), temporary.c_str(), i, t.region.width, t.region.height, temporary.c_str(), temp.c_str());
 			}
 		}
 
@@ -1048,8 +1052,8 @@ void MainFrame::Run()
 			camera_photo_t t = dst[i];
 
 			// INFO:: zindex stacks the frames over each other
-			Command("convert \"%s/background.png\" -draw \"Translate %d,%d Rotate %d Image Over 0,0 %d,%d '%s/camera_%04d.png'\" \"%s/background.png\"", 
-					temporary.c_str(), t.region.x, t.region.y, t.degrees, t.region.width, t.region.height, temporary.c_str(), i, temporary.c_str());
+			Command("convert \"%s/background.png\" -draw \"Translate %d,%d Rotate %d Image Over 0,0 %d,%d '%s/%s'\" \"%s/background.png\"", 
+					temporary.c_str(), t.region.x, t.region.y, t.degrees, t.region.width, t.region.height, temporary.c_str(), temp.c_str(), temporary.c_str());
 		}
 
 		sleep(__C->GetCameraInterval());
@@ -1064,11 +1068,11 @@ void MainFrame::Run()
 	}
 
 	if (animation.type == "slide") {
-		_animation = new SlideAnimation();
+		_animation = new SlideAnimation(images);
 	} else if (animation.type == "grid") {
-		_animation = new GridAnimation();
+		_animation = new GridAnimation(images);
 	} else if (animation.type == "fade") {
-		_animation = new FadeAnimation();
+		_animation = new FadeAnimation(images);
 	}
 
 	_counter = -1;
