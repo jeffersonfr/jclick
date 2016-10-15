@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "photoframe.h"
 #include "painter.h"
+#include "mainframe.h"
 #include "config.h"
 #include "jsystem.h"
 #include "jfile.h"
@@ -41,6 +42,7 @@ PhotoFrame::PhotoFrame(jgui::Container *parent, std::string path):
 	_path = path;
 	_index = -1;
 	_message = "No photos in device !";
+	_frame = (MainFrame *)parent;
 
 	Update();
 	

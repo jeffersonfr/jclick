@@ -107,12 +107,11 @@ MainFrame::MainFrame():
 
 MainFrame::~MainFrame()
 {
-	if (_grabber_player != NULL) {
-		_grabber_player->RemoveFrameGrabberListener(this);
+	std::string temporary = __C->GetTempPath();
 
-		_grabber_player->Stop();
-		delete _grabber_player;
-	}
+	Command("rm -r \"%s\"", temporary.c_str());
+
+	StopGrabber();
 
 	delete _menu_frame;
 	delete _level_frame;
@@ -130,6 +129,47 @@ static bool ascending_sort(const std::string &a, const std::string &b)
 	}
 
 	return true;
+}
+
+void MainFrame::StartGrabber()
+{
+#ifdef CAMERA_ENABLED
+	if (_grabber_player != NULL) {
+		return;
+	}
+
+	_grabber_player = jmedia::PlayerManager::CreatePlayer(std::string("v4l2:") + __C->GetTextParam("camera.device")); 
+
+	// TODO:: _grabber_player->Configure(size.width, size.height);
+	
+	jgui::jsize_t size = __C->GetCameraMode();
+
+	jmedia::VideoSizeControl *control = (jmedia::VideoSizeControl *)_grabber_player->GetControl("video.size");
+	
+	if (control != NULL) {
+		control->SetSize(size.width, size.height);
+	}
+
+	_grabber_player->RegisterFrameGrabberListener(this);
+	_grabber_player->Play();
+	
+	ResetControlValues();
+#endif
+}
+
+void MainFrame::StopGrabber()
+{
+#ifdef CAMERA_ENABLED
+	if (_grabber_player == NULL) {
+		return;
+	}
+
+	_grabber_player->RemoveFrameGrabberListener(this);
+
+	_grabber_player->Stop();
+	delete _grabber_player;
+	_grabber_player = NULL;
+#endif
 }
 
 void MainFrame::LoadResources()
@@ -291,6 +331,29 @@ void MainFrame::LoadResources()
 	}
 
 	_loading_index = 0;
+	
+	std::string temporary = __C->GetTempPath();
+	camera_compose_t compose = __C->GetComposition();
+
+	// create temporary dir
+	Command("mkdir -p \"%s\"", temporary.c_str());
+	Command("rm -rf \"%s/camera*\"", temporary.c_str());
+
+	// compose process
+	if (compose.image != "") {
+		if (compose.over == true) {
+			Command("convert -size %dx%d xc:none \"%s\" -geometry %dx%d! -composite \"%s/compose.png\"", 
+					compose.size.width, compose.size.height, compose.image.c_str(), compose.size.width, compose.size.height, temporary.c_str());
+			Command("convert -size %dx%d xc:%s -resize %dx%d! \"%s/background.png\"", 
+				compose.size.width, compose.size.height, compose.color.c_str(), compose.size.width, compose.size.height, temporary.c_str());
+		} else {
+			Command("convert -size %dx%d xc:%s \"%s\" -geometry %dx%d! -composite \"%s/background.png\"", 
+					compose.size.width, compose.size.height, compose.color.c_str(), compose.image.c_str(), compose.size.width, compose.size.height, temporary.c_str());
+		}
+	} else {
+		Command("convert -size %dx%d xc:%s -resize %dx%d! \"%s/background.png\"", 
+			compose.size.width, compose.size.height, compose.color.c_str(), compose.size.width, compose.size.height, temporary.c_str());
+	}
 }
 
 jgui::jregion_t MainFrame::GetFrameBounds()
@@ -515,24 +578,7 @@ void MainFrame::Initialize()
 {
 	_screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
 
-#ifdef CAMERA_ENABLED
-	_grabber_player = jmedia::PlayerManager::CreatePlayer(std::string("v4l2:") + __C->GetTextParam("camera.device")); 
-
-	// TODO:: _grabber_player->Configure(size.width, size.height);
-	
-	jgui::jsize_t size = __C->GetCameraMode();
-
-	jmedia::VideoSizeControl *control = (jmedia::VideoSizeControl *)_grabber_player->GetControl("video.size");
-	
-	if (control != NULL) {
-		control->SetSize(size.width, size.height);
-	}
-
-	_grabber_player->RegisterFrameGrabberListener(this);
-	_grabber_player->Play();
-	
-	ResetControlValues();
-#endif
+	StartGrabber();
 
 	Show();
 
@@ -622,7 +668,6 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 	} else if (event->GetSymbol() == jgui::JKS_CURSOR_RIGHT) {
 		NextBorder();
 	} else if (event->GetSymbol() == jgui::JKS_m || event->GetSymbol() == jgui::JKS_M) {
-		// _current = new MenuFrame(this);
 		_menu_frame->SetVisible(true);
 	} else if (event->GetSymbol() == jgui::JKS_q || event->GetSymbol() == jgui::JKS_Q) {
 		ReleaseAll();
@@ -941,25 +986,9 @@ void MainFrame::Run()
 	jgui::jinsets_t crop = __C->GetSourceCrop();
 
 	// create temporary dir
-	Command("rm -rf \"%s\"", temporary.c_str());
 	Command("mkdir -p \"%s\"", temporary.c_str());
 	Command("mkdir -p \"%s\"", repository.c_str());
-
-	// compose process
-	if (compose.image != "") {
-		if (compose.over == true) {
-			Command("convert -size %dx%d xc:none \"%s\" -geometry %dx%d! -composite \"%s/compose.png\"", 
-					compose.size.width, compose.size.height, compose.image.c_str(), compose.size.width, compose.size.height, temporary.c_str());
-			Command("convert -size %dx%d xc:%s -resize %dx%d! \"%s/background.png\"", 
-				compose.size.width, compose.size.height, compose.color.c_str(), compose.size.width, compose.size.height, temporary.c_str());
-		} else {
-			Command("convert -size %dx%d xc:%s \"%s\" -geometry %dx%d! -composite \"%s/background.png\"", 
-					compose.size.width, compose.size.height, compose.color.c_str(), compose.image.c_str(), compose.size.width, compose.size.height, temporary.c_str());
-		}
-	} else {
-		Command("convert -size %dx%d xc:%s -resize %dx%d! \"%s/background.png\"", 
-			compose.size.width, compose.size.height, compose.color.c_str(), compose.size.width, compose.size.height, temporary.c_str());
-	}
+	Command("rm -rf \"%s/camera*\"", temporary.c_str());
 
 	std::vector<std::string> images;
 
@@ -1004,7 +1033,7 @@ void MainFrame::Run()
 			delete clone;
 		}
 
-		std::string temp = image->GetGraphics()->Dump("/tmp/clickpb", "camera");
+		std::string temp = image->GetGraphics()->Dump(temporary, "camera");
 
 		delete image;
 
@@ -1028,8 +1057,8 @@ void MainFrame::Run()
 		int tx = (crop.left*size.width)/100;
 		int ty = (crop.top*size.height)/100;
 
-		Command("mogrify \"%s/%s\" -crop %dx%d+%d+%d", 
-				temporary.c_str(), temp.c_str(), _cregion.width-2*tx, _cregion.height-2*ty, tx, ty);
+		Command("mogrify -crop %dx%d+%d+%d \"%s/%s\"", 
+				_cregion.width-2*tx, _cregion.height-2*ty, tx, ty, temporary.c_str(), temp.c_str());
 
 		if (_running == false) {
 			goto _run_cleanup;
@@ -1094,7 +1123,7 @@ void MainFrame::Run()
 _run_cleanup:
 
 	// delete temporary
-	Command("rm -r \"%s\"", temporary.c_str());
+	Command("rm -rf \"%s/camera*\"", temporary.c_str());
 
 	_counter = -1;
 }

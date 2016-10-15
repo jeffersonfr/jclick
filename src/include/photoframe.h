@@ -29,10 +29,13 @@
 #include <unistd.h>
 #include <stdio.h>
 
+class MainFrame;
+
 class PhotoFrame : public jgui::Panel {
 
 	private:
 		std::vector<std::string> _images;
+		MainFrame *_frame;
 		jthread::Mutex _mutex;
 		std::string _path;
 		std::string _message;

@@ -11,7 +11,6 @@
 FadeAnimation::FadeAnimation(std::vector<std::string> images):
 	Animation()
 {
-		printf(":::::::: 01:: %d\n", images.size());
 	jgui::jsize_t screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
 	jgui::jinsets_t crop = __C->GetSourceCrop();
 	std::string temporary = __C->GetTempPath();
@@ -30,7 +29,6 @@ FadeAnimation::FadeAnimation(std::vector<std::string> images):
 	screen.width = (screen.width - crop.left - crop.right) / 2;
 	screen.height = (screen.height - crop.top - crop.bottom) / 2;
 
-		printf(":::::::: 02:: %d\n", images.size());
 	for (int i=0; i<count; i++) {
 		jgui::Image *frame = jgui::Image::CreateImage(temporary + "/" + images[i]);
 

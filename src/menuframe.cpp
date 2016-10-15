@@ -58,7 +58,7 @@ std::string menu[][2] = {
 #define TEXT_SPAN			(TEXT_SIZE+GAPY)
 
 MenuFrame::MenuFrame(MainFrame *parent):
-	jgui::Panel(__L->GetParam("photoframe.title"))
+	jgui::Panel(__L->GetParam("menuframe.title"))
 {
 	jgui::jregion_t t = parent->GetVisibleBounds();
 
@@ -513,16 +513,20 @@ bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 	}
 	
 	if (_state == "menu") {
+		_frame->StartGrabber();
+
 		SetTitle(__L->GetParam("menuframe.title"));
 	} else if (_state == "menu.camera") {
 		SetTitle(__L->GetParam("menuframe.camera.title"));
 	} else if (_state == "menu.media") {
+		_frame->StopGrabber();
+
 		SetTitle(__L->GetParam("menuframe.media.title"));
 	} else if (_state == "menu.system") {
 		SetTitle(__L->GetParam("menuframe.system.title"));
 	}
 
-	// Repaint();
+	Repaint();
 
 	return true;
 }

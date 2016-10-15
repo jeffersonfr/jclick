@@ -72,6 +72,9 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public jmedia::Fra
 
 		virtual void LoadResources();
 
+		virtual void StartGrabber();
+		virtual void StopGrabber();
+
 		virtual jgui::jregion_t GetFrameBounds();
 		virtual jgui::jregion_t GetViewportBounds();
 
