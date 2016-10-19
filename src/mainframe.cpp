@@ -992,6 +992,8 @@ void MainFrame::Run()
 
 	std::vector<std::string> images;
 
+	Command("cp \"%s/background.png\" \"%s/image-background.png\"", temporary.c_str(), temporary.c_str());
+
 	for (int i=0; i<__C->GetThumbsCount(); i++) {
 		_thumb = i;
 
@@ -1081,7 +1083,7 @@ void MainFrame::Run()
 			camera_photo_t t = dst[i];
 
 			// INFO:: zindex stacks the frames over each other
-			Command("convert \"%s/background.png\" -draw \"Translate %d,%d Rotate %d Image Over 0,0 %d,%d '%s/%s'\" \"%s/background.png\"", 
+			Command("convert \"%s/image-background.png\" -draw \"Translate %d,%d Rotate %d Image Over 0,0 %d,%d '%s/%s'\" \"%s/image-background.png\"", 
 					temporary.c_str(), t.region.x, t.region.y, t.degrees, t.region.width, t.region.height, temporary.c_str(), temp.c_str(), temporary.c_str());
 		}
 
@@ -1107,23 +1109,29 @@ void MainFrame::Run()
 	_counter = -1;
 
 	if (compose.over == true) {
-		Command("convert \"%s/background.png\" -draw \"Image Over 0,0 %d,%d '%s/compose.png'\" \"%s/background.png\"", temporary.c_str(), compose.size.width, compose.size.height, temporary.c_str(), temporary.c_str());
+		Command("convert \"%s/image-background.png\" -draw \"Image Over 0,0 %d,%d '%s/compose.png'\" \"%s/image-background.png\"", temporary.c_str(), compose.size.width, compose.size.height, temporary.c_str(), temporary.c_str());
 	}
 	
 	// apply rotation and alpha
-	Command("convert \"%s/background.png\" -rotate %d \"%s/compose.png\"", temporary.c_str(), compose.degrees, temporary.c_str());
+	Command("convert \"%s/image-background.png\" -rotate %d \"%s/image-compose.png\"", temporary.c_str(), compose.degrees, temporary.c_str());
 	// CHANGE:: -alpha set not working
-	// Command("convert \"%s/compose.png\" -rotate %d -alpha set -channel a -evaluate set %d\% \"%s/compose.png\"", temporary.c_str(), compose.degrees, compose.alpha, temporary.c_str());
+	// Command("convert \"%s/compose.png\" -rotate %d -alpha set -channel a -evaluate set %d\% \"%s/image-compose.png\"", temporary.c_str(), compose.degrees, compose.alpha, temporary.c_str());
 
-	Command("convert \"%s/compose.png\" \"%s/compose-`date +\"%%s\"`.%s\"", temporary.c_str(), repository.c_str(), __C->GetImageFormat().c_str());
-	// Command("cp \"%s/compose.png\" \"%s/compose-`date +\"%%s\"`.%s\"", temporary.c_str(), repository.c_str(), __C->GetImageFormat().c_str());
+	Command("convert \"%s/image-compose.png\" \"%s/compose-`date +\"%%s\"`.%s\"", temporary.c_str(), repository.c_str(), __C->GetImageFormat().c_str());
+	// Command("cp \"%s/image-compose.png\" \"%s/compose-`date +\"%%s\"`.%s\"", temporary.c_str(), repository.c_str(), __C->GetImageFormat().c_str());
 
 	_sem_lock.Wait();
 
 _run_cleanup:
 
 	// delete temporary
-	Command("rm -rf \"%s/camera*\"", temporary.c_str());
+	for (int i=0; i<images.size(); i++) {
+		// Command("rm -rf \"%s/%s\"", temporary.c_str(), images[i]);
+		// printf("rm -rf \"%s/%s\"\n", temporary.c_str(), images[i].c_str());
+	}
+
+	Command("rm -rf \"%s/camera\"* \"%s/image-compose.png\" \"%s/image-background.png\"", temporary.c_str(), temporary.c_str(), temporary.c_str());
+	// printf("rm -rf \"%s/camera\"* \"%s/image-compose.png\" \"%s/image-background.png\"\n", temporary.c_str(), temporary.c_str(), temporary.c_str());
 
 	_counter = -1;
 }
