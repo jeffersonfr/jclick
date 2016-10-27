@@ -75,6 +75,7 @@ MainFrame::MainFrame():
 	_bw = false;
 	_view_crop = false;
 	_need_repaint;
+	_screensaver = NULL;
 
 	_fregion.x = 0;
 	_fregion.y = 0;
@@ -113,6 +114,7 @@ MainFrame::~MainFrame()
 
 	StopGrabber();
 
+	delete _screensaver;
 	delete _menu_frame;
 	delete _level_frame;
 	delete _current;
@@ -329,6 +331,13 @@ void MainFrame::LoadResources()
 
 		delete dir;
 	}
+
+	if (_screensaver != NULL) {
+		delete _screensaver;
+		_screensaver = NULL;
+	}
+
+	_screensaver = jgui::Image::CreateImage(__C->GetScreenSaver());
 
 	_loading_index = 0;
 	
@@ -905,12 +914,8 @@ void MainFrame::Paint(jgui::Graphics *g)
 		}
 	} else {
 		if (_counter < 0) {
-			jgui::Image *image = jgui::Image::CreateImage(__C->GetScreenSaver());
-
-			if (image != NULL) {
-				g->DrawImage(image, _fregion.x, _fregion.y, _fregion.width, _fregion.height);
-
-				delete image;
+			if (_screensaver != NULL) {
+				g->DrawImage(_screensaver, _fregion.x, _fregion.y, _fregion.width, _fregion.height);
 			}
 	
 			jgui::Container::Paint(g);
