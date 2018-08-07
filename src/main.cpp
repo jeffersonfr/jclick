@@ -2,9 +2,11 @@
 #include "painter.h"
 #include "config.h"
 
-#include "jlocalipcclient.h"
-#include "jremoteipcclient.h"
-#include "jipcexception.h"
+#include "jipc/jlocalipcclient.h"
+#include "jipc/jremoteipcclient.h"
+#include "jcommon/jstringtokenizer.h"
+#include "jlogger/jloggerlib.h"
+#include "jexception/jipcexception.h"
 
 #include <signal.h>
 
@@ -140,15 +142,15 @@ int main(int argc, char **argv)
 
 		jipc::Response *response = NULL;
 
-		std::cout << "Client request [" << method.what() << "]" << std::endl;
+		std::cout << "Client request [" << method.What() << "]" << std::endl;
 
 		try {
 			client->SetRequestTimeout(timeout);
 			client->CallMethod(&method, &response);
 		
-			std::cout << "Server response [" << response->what() << "]" << std::endl;
-		} catch (jipc::IPCException &e) {
-			JDEBUG(JERROR, "%s\n", e.what().c_str());
+			std::cout << "Server response [" << response->What() << "]" << std::endl;
+		} catch (jexception::IPCException &e) {
+			JDEBUG(JERROR, "%s\n", e.What().c_str());
 		}
 
 		delete client;
@@ -169,31 +171,34 @@ int main(int argc, char **argv)
 
 	theme.SetFont("component", Painter::GetFont(4));
 
-	theme.SetColor("component.bg", 0x40, 0x40, 0x40, 0xd0);
-	theme.SetColor("component.bg.focus", 0x20, 0x20, 0x20, 0xd0);
-	theme.SetColor("component.scroll", 0xa0, 0xa0, 0xa0, 0xd0);
+	theme.SetIntegerParam("component.bg", 0xd0404040);
+	theme.SetIntegerParam("component.bg.focus", 0xd0202020);
+	theme.SetIntegerParam("component.scroll", 0xd0a0a0a0);
 	
-	theme.SetColor("item.bg", 0x40, 0x40, 0x40, 0xd0);
-	theme.SetColor("item.fg", 0x40, 0x40, 0x40, 0xd0);
-	theme.SetColor("item.bg.focus", 0x80, 0x80, 0x80, 0xd0);
+	theme.SetIntegerParam("item.bg", 0xd0404040);
+	theme.SetIntegerParam("item.fg", 0xd0404040);
+	theme.SetIntegerParam("item.bg.focus", 0xd0808080);
 	
 	theme.SetFont("window", Painter::GetFont(0));
-	theme.SetColor("window.bg", 0x20, 0x20, 0x20, 0xd0);
+	theme.SetIntegerParam("window.bg", 0xd0202020);
 
-	theme.SetBorderSize("component", 1);
-	theme.SetBorderSize("window", 0);
-
-	jgui::ThemeManager::GetInstance()->SetTheme(&theme);
+	theme.SetIntegerParam("component.border", 1);
+	theme.SetIntegerParam("window.border", 0);
 
 	try {
-		MainFrame window;
+    jgui::Application::Init(argc, argv);
 
-		window.Initialize();
-	} catch (jcommon::RuntimeException &e) {
+    MainFrame app;
+
+    app.SetTitle("ClickPB");
+    app.SetVisible(true);
+    // app.Exec();
+    app.Initialize();
+
+    jgui::Application::Loop();
+  } catch (jexception::RuntimeException &e) {
 		e.PrintStackTrace();
 	}
-
-	jgui::GFXHandler::GetInstance()->Release();
 
 	return 0;
 }

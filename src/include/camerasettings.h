@@ -1,12 +1,8 @@
 #ifndef __CAMERASETTINGS_PHOTOBOOTH_H
 #define __CAMERASETTINGS_PHOTOBOOTH_H
 
-#include "jruntimeexception.h"
-#include "jparammapper.h"
-#include "jstringtokenizer.h"
-#include "jproperties.h"
-#include "jparammapper.h"
-#include "jgraphics.h"
+#include "jcommon/jparammapper.h"
+#include "jgui/jgraphics.h"
 
 struct camera_input_t {
 	std::string id;

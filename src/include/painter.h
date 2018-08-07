@@ -1,7 +1,7 @@
 #ifndef __PAINTER_PHOTOBOOTH_H
 #define __PAINTER_PHOTOBOOTH_H
 
-#include "jgraphics.h"
+#include "jgui/jgraphics.h"
 
 class Painter {
 

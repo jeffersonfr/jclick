@@ -2,7 +2,8 @@
 #define __SLIDEANIMATION_PHOTOBOOTH_H
 
 #include "animation.h"
-#include "jcolor.h"
+
+#include "jgui/jcolor.h"
 
 class SlideAnimation : public Animation {
 

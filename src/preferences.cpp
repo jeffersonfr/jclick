@@ -19,11 +19,12 @@
  ***************************************************************************/
 #include "preferences.h"
 #include "config.h"
-#include "jfileoutputstream.h"
-#include "jxmlparser.h"
-#include "jfile.h"
-#include "jstringutils.h"
-#include "jruntimeexception.h"
+
+#include "jcommon/jxmlparser.h"
+#include "jio/jfileoutputstream.h"
+#include "jio/jfile.h"
+#include "jcommon/jstringutils.h"
+#include "jexception/jruntimeexception.h"
 
 #include <iostream>
 #include <sstream>

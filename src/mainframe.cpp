@@ -6,17 +6,17 @@
 #include "fadeanimation.h"
 #include "painter.h"
 #include "config.h"
-#include "jsystem.h"
-#include "jmessagedialogbox.h"
-#include "jlocalipcserver.h"
-#include "jremoteipcserver.h"
-#include "jstringutils.h"
-#include "jplayermanager.h"
-#include "jvideodevicecontrol.h"
-#include "jvideosizecontrol.h"
-#include "jdebug.h"
+
+#include "jgui/jbufferedimage.h"
+#include "jipc/jlocalipcserver.h"
+#include "jipc/jremoteipcserver.h"
+#include "jmedia/jplayermanager.h"
+#include "jmedia/jvideodevicecontrol.h"
+#include "jmedia/jvideosizecontrol.h"
+#include "jlogger/jloggerlib.h"
 
 #include <sstream>
+#include <algorithm>
 
 #include <stdarg.h>
 
@@ -29,15 +29,18 @@
 #define CTRL_DN(id) SetControlValue(id, GetControlValue(id) - CONTROL_STEP)
 #define CTRL_UP(id) SetControlValue(id, GetControlValue(id) + CONTROL_STEP)
 
-class RepaintThread : public jthread::Thread {
+class RepaintThread {
 
 	private:
 		jgui::Component *_component;
+    std::thread _thread;
+    bool _is_running;
 
 	public:
 		RepaintThread(jgui::Component *c = NULL)
 		{
 			_component = c;
+      _is_running = false;
 		}
 
 		virtual ~RepaintThread()
@@ -51,16 +54,35 @@ class RepaintThread : public jthread::Thread {
 
 		virtual void Run()
 		{
+      _is_running = true;
+
 			_component->Repaint();
+      
+      _is_running = false;
 		}
 
+    virtual void Wait()
+    {
+      if (_is_running == true) {
+        _thread.join();
+      }
+    }
+
+    virtual void Start()
+    {
+      if (_is_running == true) {
+        _thread.join();
+      }
+
+      _thread = std::thread(&RepaintThread::Run, this);
+    }
 };
 
 RepaintThread _repaint_thread;
 
 MainFrame::MainFrame():
-	jgui::Frame(),
-	jmedia::FrameGrabberListener(),
+	jgui::Window(0, 0, 1280, 720),
+	jevent::FrameGrabberListener(),
 	jipc::RemoteCallListener()
 {
 	_current = NULL;
@@ -77,15 +99,17 @@ MainFrame::MainFrame():
 	_need_repaint;
 	_screensaver = NULL;
 
+  jgui::jsize_t size = GetSize();
+
 	_fregion.x = 0;
 	_fregion.y = 0;
-	_fregion.width = GetWidth();
-	_fregion.height = GetHeight();
+	_fregion.width = size.width;
+	_fregion.height = size.height;
 
 	_wregion.x = 0;
 	_wregion.y = 0;
-	_wregion.width = GetWidth();
-	_wregion.height = GetHeight();
+	_wregion.width = size.width;
+	_wregion.height = size.height;
 
 	jgui::jinsets_t insets = GetInsets();
 
@@ -98,9 +122,7 @@ MainFrame::MainFrame():
 	Add(_level_frame);
 
 	SetBackgroundVisible(false);
-	SetUndecorated(true);
-	SetDefaultExitEnabled(false);
-		
+
 	_repaint_thread.SetComponent(this);
 
 	// *((int *)(NULL)) = 0;
@@ -113,12 +135,12 @@ MainFrame::~MainFrame()
 	Command("rm -r \"%s\"", temporary.c_str());
 
 	StopGrabber();
+  SetTheme(NULL);
 
 	delete _screensaver;
 	delete _menu_frame;
 	delete _level_frame;
 	delete _current;
-	delete _theme;
 	delete _frame;
 	delete _audio_player;
 	delete _animation;
@@ -188,7 +210,7 @@ void MainFrame::LoadResources()
 		file = NULL;
 	}
 
-	jthread::AutoLock lock(&_mutex);
+  _mutex.lock();
 
 	while (_borders.size() > 0) {
 		jgui::Image *image = (*_borders.begin());
@@ -207,7 +229,7 @@ void MainFrame::LoadResources()
 		file = jio::File::OpenFile(image);
 
 		if (file != NULL) {
-			_borders.push_back(jgui::Image::CreateImage(image));
+			_borders.push_back(new jgui::BufferedImage(image));
 		}
 	}
 
@@ -231,7 +253,7 @@ void MainFrame::LoadResources()
 		jio::File *dir = jio::File::OpenDirectory(shutter.file);
 
 		if (dir == NULL) {
-			jgui::Image *image = jgui::Image::CreateImage(shutter.file);
+			jgui::Image *image = new jgui::BufferedImage(shutter.file);
 
 			if (image != NULL) {
 				_shutter_frames.push_back(image);
@@ -246,7 +268,7 @@ void MainFrame::LoadResources()
 			std::sort(files.begin(), files.end(), ascending_sort);
 
 			for (std::vector<std::string>::iterator i=files.begin(); i!=files.end(); i++) {
-				jgui::Image *image = jgui::Image::CreateImage(shutter.file + "/" + (*i));
+				jgui::Image *image = new jgui::BufferedImage(shutter.file + "/" + (*i));
 
 				if (image != NULL) {
 					_shutter_frames.push_back(image);
@@ -272,7 +294,7 @@ void MainFrame::LoadResources()
 	_timeline_frames.clear();
 
 	if (timeline.image.empty() == false) {
-		jgui::Image *image = jgui::Image::CreateImage(timeline.image);
+		jgui::Image *image = new jgui::BufferedImage(timeline.image);
 
 		if (image != NULL) {
 			jgui::jsize_t isize = image->GetSize();
@@ -303,7 +325,7 @@ void MainFrame::LoadResources()
 	jio::File *dir = jio::File::OpenDirectory(greetings.loading);
 
 	if (dir == NULL) {
-		jgui::Image *image = jgui::Image::CreateImage(greetings.loading);
+		jgui::Image *image = new jgui::BufferedImage(greetings.loading);
 
 		if (image != NULL) {
 			_loading_frames.push_back(image);
@@ -318,7 +340,7 @@ void MainFrame::LoadResources()
 		std::sort(files.begin(), files.end(), ascending_sort);
 
 		for (std::vector<std::string>::iterator i=files.begin(); i!=files.end(); i++) {
-			jgui::Image *image = jgui::Image::CreateImage(greetings.loading + "/" + (*i));
+			jgui::Image *image = new jgui::BufferedImage(greetings.loading + "/" + (*i));
 
 			if (image != NULL) {
 				_loading_frames.push_back(image);
@@ -337,7 +359,7 @@ void MainFrame::LoadResources()
 		_screensaver = NULL;
 	}
 
-	_screensaver = jgui::Image::CreateImage(__C->GetScreenSaver());
+	_screensaver = new jgui::BufferedImage(__C->GetScreenSaver());
 
 	_loading_index = 0;
 	
@@ -363,6 +385,8 @@ void MainFrame::LoadResources()
 		Command("convert -size %dx%d xc:%s -resize %dx%d! \"%s/background.png\"", 
 			compose.size.width, compose.size.height, compose.color.c_str(), compose.size.width, compose.size.height, temporary.c_str());
 	}
+
+  _mutex.unlock();
 }
 
 jgui::jregion_t MainFrame::GetFrameBounds()
@@ -388,7 +412,7 @@ jipc::Response * MainFrame::ProcessCall(jipc::Method *method)
 
 	std::string name = method->GetName();
 
-	std::cout << "remote call:: " << method->what() << std::endl;
+	std::cout << "remote call:: " << method->What() << std::endl;
 
 	if (name == "help") {
 		response->SetTextParam("methods", 
@@ -410,8 +434,8 @@ jipc::Response * MainFrame::ProcessCall(jipc::Method *method)
 			__C->LoadConfiguration(path);
 
 			LoadResources();
-		} catch (jcommon::RuntimeException &e) {
-			JDEBUG(JERROR, "%s\n", e.what().c_str());
+		} catch (jexception::RuntimeException &e) {
+			JDEBUG(JERROR, "%s\n", e.What().c_str());
 		}
 	} else if (name == "nextBorder") {
 		NextBorder();
@@ -455,7 +479,7 @@ jipc::Response * MainFrame::ProcessCall(jipc::Method *method)
 		response->SetBooleanParam("self", false);
 	}
 
-	std::cout << "response:: " << response->what() << std::endl;
+	std::cout << "response:: " << response->What() << std::endl;
 
 	return response;
 }
@@ -512,7 +536,7 @@ void MainFrame::InitializeRegions()
 	Repaint();
 }
 	
-void MainFrame::FrameGrabbed(jmedia::FrameGrabberEvent *event)
+void MainFrame::FrameGrabbed(jevent::FrameGrabberEvent *event)
 {
 	if (__C->IsOptimized() == true && (void *)_animation != NULL) {
 		Repaint();
@@ -520,9 +544,10 @@ void MainFrame::FrameGrabbed(jmedia::FrameGrabberEvent *event)
 		return;
 	}
 
-	jgui::jsize_t t = event->GetFrame()->GetSize();
+  jgui::Image *frame = reinterpret_cast<jgui::Image *>(event->GetSource());
+	jgui::jsize_t t = frame->GetSize();
 
-	_mutex.Lock();
+	_mutex.lock();
 
 	if (_frame == NULL) {
 		_cregion.x = 0;
@@ -537,12 +562,12 @@ void MainFrame::FrameGrabbed(jmedia::FrameGrabberEvent *event)
 	}
 
 	if (__C->GetCameraViewportFlip() == false) {
-		_frame = jgui::Image::CreateImage(event->GetFrame());
+		_frame = dynamic_cast<jgui::Image *>(frame->Clone());
 	} else {
-		_frame = event->GetFrame()->Flip(jgui::JFF_HORIZONTAL);
+		_frame = frame->Flip(jgui::JFF_HORIZONTAL);
 	}
 
-	_mutex.Unlock();
+	_mutex.unlock();
 
 	if (_bw == true) {
 		int count = t.width*t.height;
@@ -566,30 +591,28 @@ void MainFrame::FrameGrabbed(jmedia::FrameGrabberEvent *event)
 		delete [] ptr;
 	}
 
-	if (_repaint_thread.IsRunning() == true) {
-		_repaint_thread.WaitThread();
-	}
+	_repaint_thread.Wait();
 
 	Repaint();
 }
 
 void MainFrame::ReleaseFrame()
 {
-	jthread::AutoLock lock(&_mutex);
+  _mutex.lock();
 
 	delete _frame;
 	_frame = NULL;
 
 	_need_repaint = true;
+  
+  _mutex.unlock();
 }
 
 void MainFrame::Initialize()
 {
-	_screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
+	// TODO:: _screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
 
 	StartGrabber();
-
-	Show();
 
 	camera_input_t t = __C->GetCameraInput();
 	jipc::IPCServer *input = NULL;
@@ -603,30 +626,30 @@ void MainFrame::Initialize()
 	while (true) {
 		try {
 			input->WaitCall(this);
-		} catch (jcommon::Exception &e) {
-			JDEBUG(JWARN, "Connection interrupted: %s\n", e.what().c_str());
+		} catch (jexception::Exception &e) {
+			JDEBUG(JWARN, "Connection interrupted: %s\n", e.What().c_str());
 		}
 	}
 }
 
-bool MainFrame::MousePressed(jgui::MouseEvent *event)
+bool MainFrame::MousePressed(jevent::MouseEvent *event)
 {
-	if (jgui::Frame::MousePressed(event) == true) {
+	if (jgui::Window::MousePressed(event) == true) {
 		return true;
 	}
 
-	if (event->GetButton() == jgui::JMB_BUTTON1) {
+	if (event->GetButton() == jevent::JMB_BUTTON1) {
 		StartShutter();
-	} else if (event->GetButton() == jgui::JMB_BUTTON2) {
+	} else if (event->GetButton() == jevent::JMB_BUTTON2) {
 		RandomBorder();
 	}
 
 	return true;
 }
 
-bool MainFrame::MouseWheel(jgui::MouseEvent *event)
+bool MainFrame::MouseWheel(jevent::MouseEvent *event)
 {
-	if (jgui::Frame::MouseWheel(event) == true) {
+	if (jgui::Window::MouseWheel(event) == true) {
 		return true;
 	}
 
@@ -639,7 +662,7 @@ bool MainFrame::MouseWheel(jgui::MouseEvent *event)
 	return true;
 }
 
-bool MainFrame::KeyPressed(jgui::KeyEvent *event)
+bool MainFrame::KeyPressed(jevent::KeyEvent *event)
 {
 	if (_menu_frame->IsVisible() == true && _menu_frame->KeyPressed(event) == true) {
 		return true;
@@ -660,9 +683,9 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 		_current = NULL;
 	}
 
-	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT) || event->GetSymbol() == jgui::JKS_BACKSPACE;
+	bool exit = (event->GetSymbol() == jevent::JKS_ESCAPE || event->GetSymbol() == jevent::JKS_EXIT) || event->GetSymbol() == jevent::JKS_BACKSPACE;
 
-	if (event->GetSymbol() == jgui::JKS_ENTER) {
+	if (event->GetSymbol() == jevent::JKS_ENTER) {
 		StartShutter();
 	} else if (exit == true) {
 		if (_menu_frame->IsVisible() == true) {
@@ -672,23 +695,23 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 
 			_need_repaint = true;
 		}
-	} else if (event->GetSymbol() == jgui::JKS_CURSOR_LEFT) {
+	} else if (event->GetSymbol() == jevent::JKS_CURSOR_LEFT) {
 		PreviousBorder();
-	} else if (event->GetSymbol() == jgui::JKS_CURSOR_RIGHT) {
+	} else if (event->GetSymbol() == jevent::JKS_CURSOR_RIGHT) {
 		NextBorder();
-	} else if (event->GetSymbol() == jgui::JKS_m || event->GetSymbol() == jgui::JKS_M) {
+	} else if (event->GetSymbol() == jevent::JKS_m || event->GetSymbol() == jevent::JKS_M) {
 		_menu_frame->SetVisible(true);
-	} else if (event->GetSymbol() == jgui::JKS_q || event->GetSymbol() == jgui::JKS_Q) {
+	} else if (event->GetSymbol() == jevent::JKS_q || event->GetSymbol() == jevent::JKS_Q) {
 		ReleaseAll();
-	} else if (event->GetSymbol() == jgui::JKS_r || event->GetSymbol() == jgui::JKS_R) {
+	} else if (event->GetSymbol() == jevent::JKS_r || event->GetSymbol() == jevent::JKS_R) {
 		_bw = false;
 
 		_level_frame->Hide();
 
 		ResetControlValues();
-	} else if (event->GetSymbol() == jgui::JKS_t || event->GetSymbol() == jgui::JKS_T) {
+	} else if (event->GetSymbol() == jevent::JKS_t || event->GetSymbol() == jevent::JKS_T) {
 		ToogleBlackAndWhite();
-	} else if (event->GetSymbol() == jgui::JKS_v || event->GetSymbol() == jgui::JKS_V) {
+	} else if (event->GetSymbol() == jevent::JKS_v || event->GetSymbol() == jevent::JKS_V) {
 		if (_view_crop == false) {
 			_view_crop = true;
 		} else {
@@ -696,21 +719,21 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 		}
 			
 		_need_repaint = true;
-	} else if (event->GetSymbol() == jgui::JKS_b) {
+	} else if (event->GetSymbol() == jevent::JKS_b) {
 		CTRL_DN(jmedia::JVC_BRIGHTNESS);
-	} else if (event->GetSymbol() == jgui::JKS_B) {
+	} else if (event->GetSymbol() == jevent::JKS_B) {
 		CTRL_UP(jmedia::JVC_BRIGHTNESS);
-	} else if (event->GetSymbol() == jgui::JKS_g) {
+	} else if (event->GetSymbol() == jevent::JKS_g) {
 		CTRL_DN(jmedia::JVC_GAMMA);
-	} else if (event->GetSymbol() == jgui::JKS_G) {
+	} else if (event->GetSymbol() == jevent::JKS_G) {
 		CTRL_UP(jmedia::JVC_GAMMA);
-	} else if (event->GetSymbol() == jgui::JKS_c) {
+	} else if (event->GetSymbol() == jevent::JKS_c) {
 		CTRL_DN(jmedia::JVC_CONTRAST);
-	} else if (event->GetSymbol() == jgui::JKS_C) {
+	} else if (event->GetSymbol() == jevent::JKS_C) {
 		CTRL_UP(jmedia::JVC_CONTRAST);
-	} else if (event->GetSymbol() == jgui::JKS_s) {
+	} else if (event->GetSymbol() == jevent::JKS_s) {
 		CTRL_DN(jmedia::JVC_SATURATION);
-	} else if (event->GetSymbol() == jgui::JKS_S) {
+	} else if (event->GetSymbol() == jevent::JKS_S) {
 		CTRL_UP(jmedia::JVC_SATURATION);
 	} else {
 		return false;
@@ -723,7 +746,7 @@ bool MainFrame::KeyPressed(jgui::KeyEvent *event)
 	if (_current != NULL) {
 		_lock_menu = true;
 
-		_current->Show();
+		// TODO:: _current->Show();
 	}
 
 	return true;
@@ -733,18 +756,22 @@ void MainFrame::StartShutter()
 {
 	_level_frame->Hide();
 
-	if (IsRunning() == false) {
+	if (_running == false) {
 		_running = true;
 
-		Start();
+		_thread = std::thread(&MainFrame::Run, this);
 	}
 }
 
 void MainFrame::StopShutter()
 {
+  if (_running == false) {
+    return;
+  }
+
 	_running = false;
 
-	WaitThread();
+  _thread.join();
 }
 
 void MainFrame::ToogleBlackAndWhite()
@@ -837,7 +864,7 @@ int MainFrame::Command(const char *fmt, ...)
 
 void MainFrame::Paint(jgui::Graphics *g)
 {
-	jthread::AutoLock lock(&_mutex);
+  _mutex.lock();
 
 	camera_shutter_t shutter = __C->GetCameraShutter();
 
@@ -881,9 +908,11 @@ void MainFrame::Paint(jgui::Graphics *g)
 			delete _animation;
 			_animation = NULL;
 
-			_sem_lock.Notify();
+			_sem_lock.notify_all();
 		}
 		
+    _mutex.unlock();
+
 		return;
 	}
 
@@ -910,7 +939,7 @@ void MainFrame::Paint(jgui::Graphics *g)
 		}
 
 		if (_fade < 0) {
-			_sem_lock.Notify();
+			_sem_lock.notify_all();
 		}
 	} else {
 		if (_counter < 0) {
@@ -978,6 +1007,8 @@ void MainFrame::Paint(jgui::Graphics *g)
 			}
 		}
 	}
+    
+  _mutex.unlock();
 }
 
 void MainFrame::Run()
@@ -1017,13 +1048,11 @@ void MainFrame::Run()
 
 		_thumb = i+1;
 
-		_mutex.Lock();
+    std::unique_lock<std::mutex> lock(_mutex);
 
 		// INFO:: create a image to dump 
 		jgui::Image *clone = dynamic_cast<jgui::Image *>(_frame->Clone());
 		jgui::jsize_t size = _frame->GetSize();
-
-		_mutex.Unlock();
 
 		if (_borders.size() > 0) {
 			jgui::Graphics *g = clone->GetGraphics();
@@ -1052,7 +1081,7 @@ void MainFrame::Run()
 			_audio_player->Play();
 		}
 
-		_sem_lock.Wait();
+		_sem_lock.wait(lock);
 
 		_counter = 0;
 
@@ -1125,9 +1154,11 @@ void MainFrame::Run()
 	Command("convert \"%s/image-compose.png\" \"%s/compose-`date +\"%%s\"`.%s\"", temporary.c_str(), repository.c_str(), __C->GetImageFormat().c_str());
 	// Command("cp \"%s/image-compose.png\" \"%s/compose-`date +\"%%s\"`.%s\"", temporary.c_str(), repository.c_str(), __C->GetImageFormat().c_str());
 
-	_sem_lock.Wait();
-
 _run_cleanup:
+
+  std::unique_lock<std::mutex> lock(_mutex);
+
+	_sem_lock.wait(lock);
 
 	// delete temporary
 	for (int i=0; i<images.size(); i++) {

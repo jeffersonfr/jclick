@@ -20,7 +20,7 @@
 #ifndef __CROPFRAME_PHOTOBOOTH_H
 #define __CROPFRAME_PHOTOBOOTH_H
 
-#include "jdialogbox.h"
+#include "jgui/jcontainer.h"
 
 #include <string>
 #include <vector>
@@ -31,7 +31,7 @@
 
 class MainFrame;
 
-class CropFrame : public jgui::DialogBox {
+class CropFrame : public jgui::Container {
 
 	private:
 		jgui::jregion_t _crop_region;
@@ -43,7 +43,7 @@ class CropFrame : public jgui::DialogBox {
 		virtual ~CropFrame();
 
 		virtual jgui::jinsets_t GetCrop();
-		virtual bool KeyPressed(jgui::KeyEvent *event);
+		virtual bool KeyPressed(jevent::KeyEvent *event);
 		virtual void Paint(jgui::Graphics *g);
 
 };

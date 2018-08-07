@@ -21,9 +21,13 @@
 #include "painter.h"
 #include "mainframe.h"
 #include "config.h"
-#include "jsystem.h"
-#include "jfile.h"
-#include "jioexception.h"
+
+#include "jcommon/jsystem.h"
+#include "jio/jfile.h"
+#include "jgui/jbufferedimage.h"
+#include "jexception/jioexception.h"
+
+#include <algorithm>
 
 struct ascending_sort {
 	bool operator()(std::string a, std::string b)
@@ -37,7 +41,7 @@ struct ascending_sort {
 };
 
 PhotoFrame::PhotoFrame(jgui::Container *parent, std::string path):
-	jgui::Panel(__L->GetParam("photoframe.title"))
+	jgui::Container(/* __L->GetParam("photoframe.title") */)
 {
 	_path = path;
 	_index = -1;
@@ -46,7 +50,9 @@ PhotoFrame::PhotoFrame(jgui::Container *parent, std::string path):
 
 	Update();
 	
-	SetBounds(0, 0, parent->GetWidth(), parent->GetHeight());
+  jgui::jsize_t size = parent->GetSize();
+
+	SetBounds(0, 0, size.width, size.height);
 	SetVisible(false);
 }
 
@@ -90,7 +96,7 @@ void PhotoFrame::Update()
 				delete file;
 				file = NULL;
 			}
-		} catch (jio::IOException &e) {
+		} catch (jexception::IOException &e) {
 		}
 	}
 
@@ -105,9 +111,9 @@ void PhotoFrame::Update()
 	}
 }
 
-bool PhotoFrame::KeyPressed(jgui::KeyEvent *event)
+bool PhotoFrame::KeyPressed(jevent::KeyEvent *event)
 {
-	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT) || event->GetSymbol() == jgui::JKS_BACKSPACE;
+	bool exit = (event->GetSymbol() == jevent::JKS_ESCAPE || event->GetSymbol() == jevent::JKS_EXIT) || event->GetSymbol() == jevent::JKS_BACKSPACE;
 
 	if (exit == true) {
 		SetVisible(false);
@@ -118,11 +124,11 @@ bool PhotoFrame::KeyPressed(jgui::KeyEvent *event)
 	int old = _index;
 
 	if (_images.size() > 0) {
-		if (event->GetSymbol() == jgui::JKS_CURSOR_LEFT) {
+		if (event->GetSymbol() == jevent::JKS_CURSOR_LEFT) {
 			if (--_index < 0) {
 				_index = _images.size()-1;
 			}
-		} else if (event->GetSymbol() == jgui::JKS_CURSOR_RIGHT) {
+		} else if (event->GetSymbol() == jevent::JKS_CURSOR_RIGHT) {
 			_index = (_index+1)%_images.size();
 		}
 
@@ -136,7 +142,7 @@ bool PhotoFrame::KeyPressed(jgui::KeyEvent *event)
 
 void PhotoFrame::Paint(jgui::Graphics *g)
 {
-	jgui::Panel::Paint(g);
+	jgui::Container::Paint(g);
 
 	jgui::jregion_t bounds = GetVisibleBounds();
 	jgui::jinsets_t insets = GetInsets();
@@ -151,13 +157,19 @@ void PhotoFrame::Paint(jgui::Graphics *g)
 		return;
 	}
 
-	jgui::jsize_t screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
-	jgui::jsize_t isize = jgui::Image::GetImageSize(_images[_index]);
+	jgui::jsize_t screen; // TODO:: = jgui::GFXHandler::GetInstance()->GetScreenSize();
+	jgui::jsize_t isize;
+  
+  jgui::Image *image = new jgui::BufferedImage(_images[_index]);
 
-	float fw = isize.width,
-				fh = isize.height,
-				scale = 0.0;
-	int bordersize = GetTheme()->GetBorderSize("window");
+  isize = image->GetSize();
+
+	float 
+    fw = isize.width,
+		fh = isize.height,
+		scale = 0.0;
+	int 
+    bordersize = GetTheme()->GetIntegerParam("window.border");
 
 	sh = sh - 2 * bordersize;
 
@@ -182,8 +194,6 @@ void PhotoFrame::Paint(jgui::Graphics *g)
 			fh = isize.height*scale;
 		}
 	}
-
-	jgui::Image *image = jgui::Image::CreateImage(_images[_index]);
 
 	g->DrawImage(image, (int)((sw-fw)/2)+insets.left, (int)((sh-fh)/2)+insets.top+bordersize, (int)fw, (int)fh);
 	

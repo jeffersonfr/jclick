@@ -1,7 +1,8 @@
 #include "gridanimation.h"
 #include "config.h"
-#include "jimage.h"
-#include "jstringutils.h"
+
+#include "jcommon/jstringutils.h"
+#include "jgui/jbufferedimage.h"
 
 #include <stdio.h>
 
@@ -10,7 +11,7 @@
 GridAnimation::GridAnimation(std::vector<std::string> images):
 	Animation()
 {
-	jgui::jsize_t screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
+	jgui::jsize_t screen; // TODO:: = jgui::GFXHandler::GetInstance()->GetScreenSize();
 	jgui::jinsets_t crop = __C->GetSourceCrop();
 	std::string temporary = __C->GetTempPath();
 	int count = images.size(); // __C->GetThumbsCount();

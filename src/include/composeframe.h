@@ -20,7 +20,7 @@
 #ifndef __COMPOSERAME_PHOTOBOOTH_H
 #define __COMPOSEFRAME_PHOTOBOOTH_H
 
-#include "jframe.h"
+#include "jgui/jcontainer.h"
 
 #include <string>
 #include <vector>
@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-class ComposeFrame : public jgui::Frame {
+class ComposeFrame : public jgui::Container {
 
 	private:
 		jgui::jinsets_t _crop_insets;
@@ -38,7 +38,7 @@ class ComposeFrame : public jgui::Frame {
 		ComposeFrame(std::string title);
 		virtual ~ComposeFrame();
 
-		virtual bool KeyPressed(jgui::KeyEvent *event);
+		virtual bool KeyPressed(jevent::KeyEvent *event);
 		virtual void Paint(jgui::Graphics *g);
 
 };

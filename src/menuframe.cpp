@@ -24,10 +24,10 @@
 #include "painter.h"
 #include "mainframe.h"
 #include "config.h"
-#include "jgridlayout.h"
-#include "jfilechooserdialogbox.h"
-#include "jmessagedialogbox.h"
-#include "jautolock.h"
+
+// #include "jgui/jfilechooserdialogbox.h"
+#include "jgui/jbufferedimage.h"
+#include "jexception/jruntimeexception.h"
 
 #include <iostream>
 #include <iomanip>
@@ -58,7 +58,7 @@ std::string menu[][2] = {
 #define TEXT_SPAN			(TEXT_SIZE+GAPY)
 
 MenuFrame::MenuFrame(MainFrame *parent):
-	jgui::Panel(__L->GetParam("menuframe.title"))
+	jgui::Container(/* __L->GetParam("menuframe.title") */)
 {
 	jgui::jregion_t t = parent->GetVisibleBounds();
 
@@ -70,11 +70,11 @@ MenuFrame::MenuFrame(MainFrame *parent):
 	_state = "menu";
 
 	for (int i=0; i<OPTIONS_SIZE; i++) {
-		_images[menu[i][0]] = jgui::Image::CreateImage(__C->GetResourcesPath() + "/" + menu[i][1]);
+		_images[menu[i][0]] = new jgui::BufferedImage(__C->GetResourcesPath() + "/" + menu[i][1]);
 	}
 
-	_images["hspin"] = jgui::Image::CreateImage(__C->GetResourcesPath() + "/" + "images/hspin.png");
-	_images["vspin"] = jgui::Image::CreateImage(__C->GetResourcesPath() + "/" + "images/vspin.png");
+	_images["hspin"] = new jgui::BufferedImage(__C->GetResourcesPath() + "/" + "images/hspin.png");
+	_images["vspin"] = new jgui::BufferedImage(__C->GetResourcesPath() + "/" + "images/vspin.png");
 
 	SetBounds((t.width-t.width*0.60)/2, t.height*0.10, t.width*0.60, t.height*0.80);
 	
@@ -145,6 +145,7 @@ void MenuFrame::OnAction(std::string state, std::string id, int options_index)
 		}
 	} else if (state == "menu.system") {
 		if (options_index == 4) {
+      /* TODO::
 			jgui::FileChooserDialogBox *frame = new jgui::FileChooserDialogBox(__L->GetParam("menuframe.system.load_configuration"), __C->GetResourcesPath());
 			jgui::jregion_t t = frame->GetVisibleBounds();
 			
@@ -155,11 +156,12 @@ void MenuFrame::OnAction(std::string state, std::string id, int options_index)
 			frame->RegisterDataListener(this);
 
 			_current = frame;
+      */
 		}
 	}
 
 	if (_current != NULL) {
-		_current->Show();
+		// TODO:: _current->Show();
 	}
 }
 
@@ -190,10 +192,10 @@ void MenuFrame::DataChanged(jcommon::ParamMapper *params)
 			__C->LoadConfiguration(filepath);
 
 			_frame->LoadResources();
-		} catch (jcommon::RuntimeException &e) {
-			jgui::MessageDialogBox msg(__L->GetParam("warning_label"), e.what());
+		} catch (jexception::RuntimeException &e) {
+			// jgui::MessageDialogBox msg(__L->GetParam("warning_label"), e.what());
 
-			msg.Show(true);
+			// TODO:: msg.Show(true);
 		}
 	}
 	
@@ -231,7 +233,7 @@ void MenuFrame::OnSelection(std::string state, std::string id, int options_index
 	}
 }
 
-void MenuFrame::ProcessKeyDown(jgui::jkeyevent_symbol_t key, std::string state, std::string id, int &options_index)
+void MenuFrame::ProcessKeyDown(jevent::jkeyevent_symbol_t key, std::string state, std::string id, int &options_index)
 {
 	struct options_t &option = menu_options[id][options_index];
 	int value = option.value,
@@ -239,25 +241,25 @@ void MenuFrame::ProcessKeyDown(jgui::jkeyevent_symbol_t key, std::string state, 
 			max = option.max;
 	item_type_t type = option.type;
 
-	if (key == jgui::JKS_ENTER) {
+	if (key == jevent::JKS_ENTER) {
 		if (type == ACTION_ITEM || type == TIME_ITEM) {
 			OnAction(state, id, options_index);
 		}
-	} else if (key == jgui::JKS_CURSOR_LEFT) {
+	} else if (key == jevent::JKS_CURSOR_LEFT) {
 		if (value > 0 && value > min) {
 			option.value = value - 1;
 
 			OnSelection(state, id, options_index);
 		}
-	} else if (key == jgui::JKS_CURSOR_RIGHT) {
+	} else if (key == jevent::JKS_CURSOR_RIGHT) {
 		if (value >= 0 && value < max) {
 			option.value = value + 1;
 
 			OnSelection(state, id, options_index);
 		}
-	} else if (key == jgui::JKS_CURSOR_UP) {
+	} else if (key == jevent::JKS_CURSOR_UP) {
 		options_index = options_index - 1;
-	} else if (key == jgui::JKS_CURSOR_DOWN) {
+	} else if (key == jevent::JKS_CURSOR_DOWN) {
 		options_index = options_index + 1;
 	}
 
@@ -272,11 +274,14 @@ void MenuFrame::ProcessKeyDown(jgui::jkeyevent_symbol_t key, std::string state, 
 
 void MenuFrame::DrawOptions(jgui::Graphics *g, std::string title, std::string id, int options_index)
 {
-	uint16_t cw, 
-					 ch;
+  jgui::jsize_t
+    size = GetSize();
+	uint16_t 
+    cw, 
+		ch;
 
-	cw = GetWidth();
-	ch = GetHeight();
+	cw = size.width;
+	ch = size.height;
 
 	int x = 0,
 			y = 0,
@@ -363,7 +368,7 @@ void MenuFrame::PushItem(std::string id, std::string name, int value, int min, i
 
 void MenuFrame::Initialize()
 {
-	jthread::AutoLock lock(&_mutex);
+  _mutex.lock();
 
 	menu_options.clear();
 
@@ -438,15 +443,17 @@ void MenuFrame::Initialize()
 	} else if (__C->GetImageFormat() == "png") {
 		menu_options["system"][1].value = 1;
 	}
+  
+  _mutex.unlock();
 }
 
-bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
+bool MenuFrame::KeyPressed(jevent::KeyEvent *event)
 {
 	if (_photo_frame->IsVisible() == true && _photo_frame->KeyPressed(event) == true) {
 		return true;
 	}
 
-	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT) || event->GetSymbol() == jgui::JKS_BACKSPACE;
+	bool exit = (event->GetSymbol() == jevent::JKS_ESCAPE || event->GetSymbol() == jevent::JKS_EXIT) || event->GetSymbol() == jevent::JKS_BACKSPACE;
 
 	if (exit == true) {
 		if (_state == "menu") {
@@ -457,12 +464,12 @@ bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 
 		// Repaint();
 	} else if (_state == "main") {
-		if (event->GetSymbol() == jgui::JKS_M || event->GetSymbol() == jgui::JKS_m) {
+		if (event->GetSymbol() == jevent::JKS_M || event->GetSymbol() == jevent::JKS_m) {
 			_index = 0;
 			_state = "menu";
 		}
 	} else if (_state == "menu") {
-		if (event->GetSymbol() == jgui::JKS_ENTER) {
+		if (event->GetSymbol() == jevent::JKS_ENTER) {
 			if (_index == 0) {
 				_camera_index = 0;
 				_state = "menu.camera";
@@ -473,15 +480,15 @@ bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 				_system_index = 0;
 				_state = "menu.system";
 			}
-		} else if (event->GetSymbol() == jgui::JKS_CURSOR_LEFT) {
+		} else if (event->GetSymbol() == jevent::JKS_CURSOR_LEFT) {
 			_index = _index - 1;
-		} else if (event->GetSymbol() == jgui::JKS_CURSOR_RIGHT) {
+		} else if (event->GetSymbol() == jevent::JKS_CURSOR_RIGHT) {
 			_index = _index + 1;
-		} else if (event->GetSymbol() == jgui::JKS_CURSOR_UP) {
+		} else if (event->GetSymbol() == jevent::JKS_CURSOR_UP) {
 			if (_index >= 3) {
 				_index = _index - 3;
 			}
-		} else if (event->GetSymbol() == jgui::JKS_CURSOR_DOWN) {
+		} else if (event->GetSymbol() == jevent::JKS_CURSOR_DOWN) {
 			if (_index < 3) {
 				_index = _index + 3;
 			}
@@ -501,7 +508,7 @@ bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 	} else if (_state == "menu.media") {
 		ProcessKeyDown(event->GetSymbol(), "menu.media", "media", _media_index);
 	} else if (_state == "menu.system") {
-		if (event->GetSymbol() == jgui::JKS_ENTER) {
+		if (event->GetSymbol() == jevent::JKS_ENTER) {
 			if (_system_index == 2) {
 				_state = "menu.system.network";
 			} else {
@@ -515,15 +522,15 @@ bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 	if (_state == "menu") {
 		_frame->StartGrabber();
 
-		SetTitle(__L->GetParam("menuframe.title"));
+		// TODO:: SetTitle(__L->GetParam("menuframe.title"));
 	} else if (_state == "menu.camera") {
-		SetTitle(__L->GetParam("menuframe.camera.title"));
+		// TODO:: SetTitle(__L->GetParam("menuframe.camera.title"));
 	} else if (_state == "menu.media") {
 		_frame->StopGrabber();
 
-		SetTitle(__L->GetParam("menuframe.media.title"));
+		// TODO:: SetTitle(__L->GetParam("menuframe.media.title"));
 	} else if (_state == "menu.system") {
-		SetTitle(__L->GetParam("menuframe.system.title"));
+		// TODO:: SetTitle(__L->GetParam("menuframe.system.title"));
 	}
 
 	Repaint();
@@ -533,11 +540,14 @@ bool MenuFrame::KeyPressed(jgui::KeyEvent *event)
 
 void MenuFrame::DrawMenu(jgui::Graphics *g)
 {
-	uint16_t cw, 
-					 ch;
+  jgui::jsize_t
+    size = GetSize();
+	uint16_t 
+    cw, 
+		ch;
 
-	cw = GetWidth();
-	ch = GetHeight();
+	cw = size.width;
+	ch = size.height;
 
 	int x = 0,
 			y = 0,
@@ -564,9 +574,9 @@ void MenuFrame::DrawMenu(jgui::Graphics *g)
 
 void MenuFrame::Paint(jgui::Graphics *g)
 {
-	jthread::AutoLock lock(&_mutex);
-	
-	jgui::Panel::Paint(g);
+	jgui::Container::Paint(g);
+
+  _mutex.lock();
 
 	if (_state == "menu") {
 		DrawMenu(g);
@@ -581,5 +591,7 @@ void MenuFrame::Paint(jgui::Graphics *g)
 	} else if (_state == "menu.system.network") {
 		DrawOptions(g, "System Settings", "system.network", _system_index);
 	}
+  
+  _mutex.unlock();
 }
 

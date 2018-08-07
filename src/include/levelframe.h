@@ -20,22 +20,24 @@
 #ifndef __LEVELFRAME_LEVELBOOTH_H
 #define __LEVELFRAME_LEVELBOOTH_H
 
-#include "jframe.h"
-#include "jthread.h"
+#include "jgui/jcontainer.h"
 
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 
-class LevelFrame : public jgui::Component, public jthread::Thread {
+class LevelFrame : public jgui::Component {
 
 	private:
+    std::thread _thread;
 		std::string _id;
 		int _level;
 		int _timeout;
+    bool _is_running;
 
 	public:
 		LevelFrame(jgui::Container *parent);

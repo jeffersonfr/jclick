@@ -2,8 +2,9 @@
 #define __FADEANIMATION_PHOTOBOOTH_H
 
 #include "animation.h"
-#include "jimage.h"
-#include "jcolor.h"
+
+#include "jgui/jimage.h"
+#include "jgui/jcolor.h"
 
 #include <vector>
 

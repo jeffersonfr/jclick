@@ -1,11 +1,15 @@
 #include "camerasettings.h"
 #include "config.h"
-#include "jimage.h"
-#include "jstringutils.h"
-#include "jdebug.h"
-#include "jruntimeexception.h"
+
+#include "jgui/jbufferedimage.h"
+#include "jcommon/jproperties.h"
+#include "jcommon/jstringutils.h"
+#include "jcommon/jstringtokenizer.h"
+#include "jlogger/jloggerlib.h"
+#include "jexception/jruntimeexception.h"
 
 #include <stdlib.h>
+#include <fcntl.h>
 
 CameraSettings *CameraSettings::_instance = new CameraSettings();
 
@@ -13,11 +17,11 @@ CameraSettings::CameraSettings()
 {
 	try {
 		LoadConfiguration(PREFERENCES_PATH("system", "conf"));
-	} catch (jcommon::RuntimeException &e) {
-		JDEBUG(JERROR, "%s\n", e.what().c_str());
+	} catch (jexception::RuntimeException &e) {
+		JDEBUG(JERROR, "%s\n", e.What().c_str());
 	}
 	
-	SetTextParam("config.directory", "/etc/"__LOCAL_MODULE_NAME__"");
+	SetTextParam("config.directory", "/etc/" __LOCAL_MODULE_NAME__ "");
 
 	SetIntegerParam("frame.timeout", 2);
 }
@@ -99,9 +103,9 @@ void CameraSettings::LoadConfiguration(std::string file)
 {
 	_config_file = file;
 
-	jcommon::Properties p;
+	jcommon::Properties p(_config_file);
 
-	p.Load(_config_file);
+	p.Load();
 
 	std::map<std::string, std::string> v = p.GetParameters();
 
@@ -165,7 +169,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 				jcommon::StringTokenizer tokens(i->second, "x");
 				
 				if (tokens.GetSize() != 2) {
-					throw jcommon::RuntimeException("Parser failed [camera.mode]: " + GetTextParam("camera.mode"));
+					throw jexception::RuntimeException("Parser failed [camera.mode]: " + GetTextParam("camera.mode"));
 				}
 
 				_camera_mode.width = atoi(tokens.GetToken(0).c_str());
@@ -179,7 +183,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 		jcommon::StringTokenizer tokens(GetTextParam("camera.viewport"), ",");
 
 		if (tokens.GetSize() != 4) {
-			throw jcommon::RuntimeException("Parser failed [camera.viewport]: " + GetTextParam("camera.viewport"));
+			throw jexception::RuntimeException("Parser failed [camera.viewport]: " + GetTextParam("camera.viewport"));
 		}
 
 		_camera_viewport.left = atoi(tokens.GetToken(0).c_str());
@@ -207,7 +211,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 				if (type != "slide" && 
 						type != "grid" && 
 						type != "fade") {
-					throw jcommon::RuntimeException("Parser failed [camera.animation]: " + GetTextParam("camera.animation"));
+					throw jexception::RuntimeException("Parser failed [camera.animation]: " + GetTextParam("camera.animation"));
 				}
 
 				_camera_animation.type = type;
@@ -254,7 +258,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 					_camera_shutter.range_min = atoi(tokens.GetToken(0).c_str())-1;
 					_camera_shutter.range_max = atoi(tokens.GetToken(1).c_str())-1;
 				} else {
-					throw jcommon::RuntimeException("Parser failed [camera.shutter]: " + GetTextParam("camera.shutter"));
+					throw jexception::RuntimeException("Parser failed [camera.shutter]: " + GetTextParam("camera.shutter"));
 				}
 			}
 		}
@@ -278,7 +282,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 				jcommon::StringTokenizer tokens(i->second, "x");
 				
 				if (tokens.GetSize() != 2) {
-					throw jcommon::RuntimeException("Parser failed [camera.shutter.timeline]: " + GetTextParam("camera.shutter.timeline"));
+					throw jexception::RuntimeException("Parser failed [camera.shutter.timeline]: " + GetTextParam("camera.shutter.timeline"));
 				}
 
 				_camera_timeline.size.width = atoi(tokens.GetToken(0).c_str());
@@ -311,7 +315,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 				jcommon::StringTokenizer tokens(i->second, ",");
 
 				if (tokens.GetSize() != 4) {
-					throw jcommon::RuntimeException("Parser failed [camera.greetings]:margin: " + GetTextParam("camera.greetings"));
+					throw jexception::RuntimeException("Parser failed [camera.greetings]:margin: " + GetTextParam("camera.greetings"));
 				}
 
 				margin.left = atoi(tokens.GetToken(0).c_str());
@@ -354,7 +358,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 		jcommon::StringTokenizer tokens(GetTextParam("image.crop"), ",");
 
 		if (tokens.GetSize() != 4) {
-			throw jcommon::RuntimeException("Parser failed [image.crop]: " + GetTextParam("image.crop"));
+			throw jexception::RuntimeException("Parser failed [image.crop]: " + GetTextParam("image.crop"));
 		}
 
 		_image_crop.left = atoi(tokens.GetToken(0).c_str());
@@ -368,7 +372,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 		jcommon::StringTokenizer tokens(GetTextParam("image.destination"), ";");
 
 		if (tokens.GetSize() == 0) {
-			throw jcommon::RuntimeException("Parser failed [image.destination]: " + GetTextParam("image.destination"));
+			throw jexception::RuntimeException("Parser failed [image.destination]: " + GetTextParam("image.destination"));
 		}
 
 		_image_regions.clear();
@@ -377,7 +381,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 			jcommon::StringTokenizer params(tokens.GetToken(i), ",");
 
 			if (params.GetSize() != 4 && params.GetSize() != 5) {
-				throw jcommon::RuntimeException("Parser failed:: " + tokens.GetToken(i));
+				throw jexception::RuntimeException("Parser failed:: " + tokens.GetToken(i));
 			}
 
 			camera_photo_t t;
@@ -443,7 +447,8 @@ void CameraSettings::LoadConfiguration(std::string file)
 
 		if (_image_compose.size.width < 0 || _image_compose.size.width < 0) {
 			if (_image_compose.image != "") {
-				jgui::jsize_t size = jgui::Image::GetImageSize(_image_compose.image);
+        jgui::Image *image = new jgui::BufferedImage(_image_compose.image);
+				jgui::jsize_t size = image->GetSize();
 
 				if (size.width > 0 && size.height > 0) {
 					_image_compose.size.width = size.width;
@@ -452,6 +457,8 @@ void CameraSettings::LoadConfiguration(std::string file)
 					_image_compose.size.width = iw;
 					_image_compose.size.height = ih;
 				}
+
+        delete image;
 			} else {
 				_image_compose.size.width = iw;
 				_image_compose.size.height = ih;
@@ -464,7 +471,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 		_camera_delay = GetIntegerParam("camera.delay");
 
 		if (_camera_delay < 0) {
-			throw jcommon::RuntimeException("Parser failed [camera.delay]: " + GetTextParam("camera.delay") + " cannot be less than zero");
+			throw jexception::RuntimeException("Parser failed [camera.delay]: " + GetTextParam("camera.delay") + " cannot be less than zero");
 		}
 	}
 
@@ -473,7 +480,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 		_camera_interval = GetIntegerParam("camera.interval");
 
 		if (_camera_interval < 0) {
-			throw jcommon::RuntimeException("Parser failed [camera.interval]: " + GetTextParam("camera.interval") + " cannot be less than zero");
+			throw jexception::RuntimeException("Parser failed [camera.interval]: " + GetTextParam("camera.interval") + " cannot be less than zero");
 		}
 	}
 
@@ -482,7 +489,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 		_image_count = GetIntegerParam("image.thumbs");
 
 		if (_image_count <= 0) {
-			throw jcommon::RuntimeException("Parser failed [camera.thumbs]: " + GetTextParam("camera.thumbs") + " must be greater than zero");
+			throw jexception::RuntimeException("Parser failed [camera.thumbs]: " + GetTextParam("camera.thumbs") + " must be greater than zero");
 		}
 	}
 }
@@ -620,7 +627,7 @@ camera_compose_t & CameraSettings::GetComposition()
 
 void CameraSettings::SetCameraViewport(jgui::jinsets_t insets)
 {
-	jcommon::Properties p;
+	jcommon::Properties p(_config_file);
 	char tmp[255];
 
 	_camera_viewport = insets;
@@ -628,16 +635,16 @@ void CameraSettings::SetCameraViewport(jgui::jinsets_t insets)
 	sprintf(tmp, "%d,%d,%d,%d", insets.left, insets.top, insets.right, insets.bottom);
 
 	try {
-		p.Load(_config_file);
+		p.Load();
 		p.SetTextParam("camera.viewport", tmp);
 		p.Save();
-	} catch (jcommon::RuntimeException &e) {
+	} catch (jexception::RuntimeException &e) {
 	}
 }
 
 void CameraSettings::SetSourceCrop(jgui::jinsets_t insets)
 {
-	jcommon::Properties p;
+	jcommon::Properties p(_config_file);
 	char tmp[255];
 
 	_image_crop = insets;
@@ -645,22 +652,22 @@ void CameraSettings::SetSourceCrop(jgui::jinsets_t insets)
 	sprintf(tmp, "%d,%d,%d,%d", insets.left, insets.top, insets.right, insets.bottom);
 
 	try {
-		p.Load(_config_file);
+		p.Load();
 		p.SetTextParam("image.crop", tmp);
 		p.Save();
-	} catch (jcommon::RuntimeException &e) {
+	} catch (jexception::RuntimeException &e) {
 	}
 }
 
 void CameraSettings::SetSystemLanguage(std::string language)
 {
-	jcommon::Properties p;
+	jcommon::Properties p(_config_file);
 
 	try {
-		p.Load(_config_file);
+		p.Load();
 		p.SetTextParam("system.language", std::string("\"") + language + "\"");
 		p.Save();
-	} catch (jcommon::RuntimeException &e) {
+	} catch (jexception::RuntimeException &e) {
 	}
 	
 	SetTextParam("system.language", language);
@@ -668,13 +675,13 @@ void CameraSettings::SetSystemLanguage(std::string language)
 
 void CameraSettings::SetCameraViewportAspect(std::string aspect)
 {
-	jcommon::Properties p;
+	jcommon::Properties p(_config_file);
 
 	try {
-		p.Load(_config_file);
+		p.Load();
 		p.SetTextParam("camera.viewport.aspect", std::string("\"") + aspect + "\"");
 		p.Save();
-	} catch (jcommon::RuntimeException &e) {
+	} catch (jexception::RuntimeException &e) {
 	}
 	
 	SetTextParam("camera.viewport.aspect", aspect);
@@ -682,13 +689,13 @@ void CameraSettings::SetCameraViewportAspect(std::string aspect)
 
 void CameraSettings::SetImageFormat(std::string format)
 {
-	jcommon::Properties p;
+	jcommon::Properties p(_config_file);
 
 	try {
-		p.Load(_config_file);
+		p.Load();
 		p.SetTextParam("image.format", std::string("\"") + format + "\"");
 		p.Save();
-	} catch (jcommon::RuntimeException &e) {
+	} catch (jexception::RuntimeException &e) {
 	}
 	
 	SetTextParam("image.format", format);

@@ -2,7 +2,8 @@
 #define __GRIDANIMATION_PHOTOBOOTH_H
 
 #include "animation.h"
-#include "jcolor.h"
+
+#include "jgui/jcolor.h"
 
 class GridAnimation : public Animation {
 

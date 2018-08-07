@@ -28,6 +28,7 @@ LevelFrame::LevelFrame(jgui::Container *parent):
 
 	_level = 0;
 	_timeout = 0;
+  _is_running = false;
 
 	SetBounds((t.width-t.width/2)/2, t.height-t.height/3, t.width/2, t.height/4);
 	SetVisible(false);
@@ -43,8 +44,8 @@ void LevelFrame::Show(std::string id, int level)
 	_id = id;
 	_level = level;
 
-	if (IsRunning() == false) {
-		Start();
+	if (_is_running == false) {
+		_thread = std::thread(&LevelFrame::Run, this);
 	}
 	
 	SetVisible(true);
@@ -52,13 +53,13 @@ void LevelFrame::Show(std::string id, int level)
 	
 void LevelFrame::Hide()
 {
-	if (IsRunning() == false) {
+	if (_is_running == false) {
 		return;
 	}
 	
 	_timeout = 0;
 
-	WaitThread();
+  _thread.join();
 
 	SetVisible(false);
 }

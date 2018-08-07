@@ -2,17 +2,12 @@
 #define __MENUFRAME_PHOTOBOOTH_H
 
 #include "photoframe.h"
-#include "jpanel.h"
-#include "jthread.h"
-#include "jsemaphore.h"
-#include "jruntimeexception.h"
-#include "jparammapper.h"
-#include "jstringtokenizer.h"
-#include "jdebug.h"
-#include "jproperties.h"
-#include "jsystem.h"
-#include "jipcserver.h"
-#include "jdatalistener.h"
+
+#include "jcommon/jparammapper.h"
+#include "jevent/jdatalistener.h"
+#include "jgui/jcontainer.h"
+
+#include <string>
 
 enum item_type_t {
 	LABEL_ITEM,
@@ -33,12 +28,12 @@ struct options_t {
 
 class MainFrame;
 
-class MenuFrame : public jgui::Panel, public jcommon::DataListener {
+class MenuFrame : public jgui::Container, public jevent::DataListener {
 
 	private:
 		std::map<std::string, jgui::Image *> _images;
-		jthread::Mutex _mutex;
-		jgui::Window *_current;
+    std::mutex _mutex;
+		jgui::Container *_current;
 		MainFrame *_frame;
 		PhotoFrame *_photo_frame;
 		std::string _state;
@@ -55,12 +50,12 @@ class MenuFrame : public jgui::Panel, public jcommon::DataListener {
 
 		virtual void OnAction(std::string state, std::string id, int options_index);
 		virtual void OnSelection(std::string state, std::string id, int options_index);
-		virtual void ProcessKeyDown(jgui::jkeyevent_symbol_t key, std::string state, std::string id, int &options_index);
+		virtual void ProcessKeyDown(jevent::jkeyevent_symbol_t key, std::string state, std::string id, int &options_index);
 		virtual void DrawOptions(jgui::Graphics *g, std::string title, std::string id, int options_index);
 		virtual void PushItem(std::string id, std::string name, int value, int min, int max, item_type_t type);
 		virtual void Initialize();
 		virtual void DrawMenu(jgui::Graphics *g);
-		virtual bool KeyPressed(jgui::KeyEvent *event);
+		virtual bool KeyPressed(jevent::KeyEvent *event);
 		virtual void Paint(jgui::Graphics *g);
 		virtual void DataChanged(jcommon::ParamMapper *params);
 

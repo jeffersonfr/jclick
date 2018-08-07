@@ -20,10 +20,11 @@
 #ifndef __PHOTOFRAME_PHOTOBOOTH_H
 #define __PHOTOFRAME_PHOTOBOOTH_H
 
-#include "jpanel.h"
+#include "jgui/jcontainer.h"
 
 #include <string>
 #include <vector>
+#include <mutex>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -31,12 +32,12 @@
 
 class MainFrame;
 
-class PhotoFrame : public jgui::Panel {
+class PhotoFrame : public jgui::Container {
 
 	private:
 		std::vector<std::string> _images;
 		MainFrame *_frame;
-		jthread::Mutex _mutex;
+    std::mutex _mutex;
 		std::string _path;
 		std::string _message;
 		int _index;
@@ -46,7 +47,7 @@ class PhotoFrame : public jgui::Panel {
 		virtual ~PhotoFrame();
 
 		virtual void Update();
-		virtual bool KeyPressed(jgui::KeyEvent *event);
+		virtual bool KeyPressed(jevent::KeyEvent *event);
 		virtual void Paint(jgui::Graphics *g);
 
 };

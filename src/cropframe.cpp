@@ -25,13 +25,11 @@
 #define CROP_LINE_SIZE 4
 
 CropFrame::CropFrame(std::string title, jgui::jregion_t region, jgui::jinsets_t insets):
-	jgui::DialogBox(title, region.x, region.y, region.width, region.height)
+	jgui::Container(/* title, */ region.x, region.y, region.width, region.height)
 {
 	_crop_region = region;
 	_crop_insets = insets;
 	_updated = false;
-
-	SetUndecorated(true);
 }
 
 CropFrame::~CropFrame()
@@ -43,34 +41,35 @@ jgui::jinsets_t CropFrame::GetCrop()
 	return _crop_insets;
 }
 
-bool CropFrame::KeyPressed(jgui::KeyEvent *event)
+bool CropFrame::KeyPressed(jevent::KeyEvent *event)
 {
 	if (jgui::Container::KeyPressed(event) == true) {
 		return true;
 	}
 
-	bool exit = (event->GetSymbol() == jgui::JKS_ESCAPE || event->GetSymbol() == jgui::JKS_EXIT);
+	bool exit = (event->GetSymbol() == jevent::JKS_ESCAPE || event->GetSymbol() == jevent::JKS_EXIT);
 
-	if (exit == true || event->GetSymbol() == jgui::JKS_BACKSPACE) {
-		Release();
+	if (exit == true || event->GetSymbol() == jevent::JKS_BACKSPACE) {
+		// TODO:: Release()
+		// Release();
 
 		return true;
 	}
 
-	if (event->GetSymbol() == jgui::JKS_R || event->GetSymbol() == jgui::JKS_r) {
+	if (event->GetSymbol() == jevent::JKS_R || event->GetSymbol() == jevent::JKS_r) {
 		_crop_insets.left = 0;
 		_crop_insets.top = 0;
 		_crop_insets.right = 0;
 		_crop_insets.bottom = 0;
-	} else if (event->GetSymbol() == jgui::JKS_CURSOR_LEFT) {
+	} else if (event->GetSymbol() == jevent::JKS_CURSOR_LEFT) {
 		_crop_insets.left = _crop_insets.left - 1;
-	} else if (event->GetSymbol() == jgui::JKS_CURSOR_RIGHT) {
+	} else if (event->GetSymbol() == jevent::JKS_CURSOR_RIGHT) {
 		_crop_insets.left = _crop_insets.left + 1;
-	} else if (event->GetSymbol() == jgui::JKS_CURSOR_UP) {
+	} else if (event->GetSymbol() == jevent::JKS_CURSOR_UP) {
 		_crop_insets.top = _crop_insets.top - 1;
-	} else if (event->GetSymbol() == jgui::JKS_CURSOR_DOWN) {
+	} else if (event->GetSymbol() == jevent::JKS_CURSOR_DOWN) {
 		_crop_insets.top = _crop_insets.top + 1;
-	} else if (event->GetSymbol() == jgui::JKS_ENTER) {
+	} else if (event->GetSymbol() == jevent::JKS_ENTER) {
 		_updated = true;
 
 		GetParams()->SetIntegerParam("left", _crop_insets.left);
@@ -78,7 +77,7 @@ bool CropFrame::KeyPressed(jgui::KeyEvent *event)
 		GetParams()->SetIntegerParam("right", _crop_insets.right);
 		GetParams()->SetIntegerParam("bottom", _crop_insets.bottom);
 
-		DispatchDataEvent(GetParams());
+		// TODO:: DispatchDataEvent(GetParams());
 	}
 
 	if (_crop_insets.left < 0) {
@@ -107,7 +106,7 @@ bool CropFrame::KeyPressed(jgui::KeyEvent *event)
 
 void CropFrame::Paint(jgui::Graphics *g)
 {
-	jgui::Frame::Paint(g);
+	jgui::Container::Paint(g);
 
 	jgui::jregion_t bounds = GetVisibleBounds();
 

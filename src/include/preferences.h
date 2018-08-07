@@ -20,7 +20,7 @@
 #ifndef __PREFERENCES_PHOTOBOOTH_H
 #define __PREFERENCES_PHOTOBOOTH_H
 
-#include "jparammapper.h"
+#include "jcommon/jparammapper.h"
 
 #include <iostream>
 #include <map>

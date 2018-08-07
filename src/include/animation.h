@@ -1,8 +1,7 @@
 #ifndef __ANIMATION_PHOTOBOOTH_H
 #define __ANIMATION_PHOTOBOOTH_H
 
-#include "jcomponent.h"
-#include "jgraphics.h"
+#include "jgui/jcomponent.h"
 
 class Animation {
 

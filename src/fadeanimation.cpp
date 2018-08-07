@@ -1,8 +1,9 @@
 #include "fadeanimation.h"
 #include "config.h"
-#include "jimage.h"
-#include "jstringutils.h"
 #include "painter.h"
+
+#include "jgui/jbufferedimage.h"
+#include "jcommon/jstringutils.h"
 
 #include <stdio.h>
 
@@ -11,7 +12,7 @@
 FadeAnimation::FadeAnimation(std::vector<std::string> images):
 	Animation()
 {
-	jgui::jsize_t screen = jgui::GFXHandler::GetInstance()->GetScreenSize();
+	jgui::jsize_t screen; // TODO:: = jgui::GFXHandler::GetInstance()->GetScreenSize();
 	jgui::jinsets_t crop = __C->GetSourceCrop();
 	std::string temporary = __C->GetTempPath();
 	camera_greetings_t greetings = __C->GetCameraGreetings();
@@ -30,7 +31,7 @@ FadeAnimation::FadeAnimation(std::vector<std::string> images):
 	screen.height = (screen.height - crop.top - crop.bottom) / 2;
 
 	for (int i=0; i<count; i++) {
-		jgui::Image *frame = jgui::Image::CreateImage(temporary + "/" + images[i]);
+		jgui::Image *frame = new jgui::BufferedImage(temporary + "/" + images[i]);
 
 		_frames.push_back(frame);
 	}
@@ -68,11 +69,15 @@ bool FadeAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 
 		_color.SetAlpha(_progress);
 
-		Painter::DrawBox(g, _color, 0, gap, cmp->GetWidth(), cmp->GetHeight()-2*gap);
+    jgui::jsize_t size = cmp->GetSize();
+
+		Painter::DrawBox(g, _color, 0, gap, size.width, size.height-2*gap);
 	} else if (_state == 1) {
+    jgui::jsize_t size = cmp->GetSize();
+
 		_progress = _progress - FADEANIMATION_STEP/2;
 
-		Painter::DrawBox(g, _color, 0, gap, cmp->GetWidth(), cmp->GetHeight()-2*gap);
+		Painter::DrawBox(g, _color, 0, gap, size.width, size.height-2*gap);
 
 		if (_progress < FADEANIMATION_STEP) {
 			_progress = 0xff;
@@ -87,37 +92,44 @@ bool FadeAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 
 		jgui::Image *img = _frames[_index];
 		jgui::Image *blend = img->Blend(_progress/255.0);
+    jgui::jsize_t isize = img->GetSize();
+    jgui::jsize_t csize = cmp->GetSize();
 
-		g->DrawImage(blend, (cmp->GetWidth()-img->GetWidth())/2, (cmp->GetHeight()-img->GetHeight())/2, img->GetWidth(), img->GetHeight());
+		g->DrawImage(blend, (csize.width-isize.width)/2, (csize.height-isize.height)/2, isize.width, isize.height);
 
 		delete blend;
 
 		if (_progress < 0x80) {
 			if ((_index+1) < _frames.size()) {
 				jgui::Image *img = _frames[_index+1];
+        jgui::jsize_t isize = img->GetSize();
+        jgui::jsize_t csize = cmp->GetSize();
 
 				blend = img->Blend((0xff-_progress)/255.0);
 
-				g->DrawImage(blend, (cmp->GetWidth()-img->GetWidth())/2, (cmp->GetHeight()-img->GetHeight())/2, img->GetWidth(), img->GetHeight());
+				g->DrawImage(blend, (csize.width-isize.width)/2, (csize.height-isize.height)/2, isize.width, isize.height);
 
 				delete blend;
 			}
 		}
 	} else if (_state == 2) {
+    jgui::jsize_t size = cmp->GetSize();
+
 		_state = 3;
 		_progress = 0xff;
 	
-		Painter::DrawBox(g, _color, 0, gap, cmp->GetWidth(), cmp->GetHeight()-2*gap);
+		Painter::DrawBox(g, _color, 0, gap, size.width, size.height-2*gap);
 
-		jgui::Image *image = jgui::Image::CreateImage(greetings.background);
+		jgui::Image *image = new jgui::BufferedImage(greetings.background);
 		
-		g->DrawImage(image, 0, 0, cmp->GetWidth(), cmp->GetHeight()-2*gap);
+		g->DrawImage(image, 0, 0, size.width, size.height-2*gap);
 
 		delete image;
 
-		Painter::DrawString(g, 1, 1, jgui::Color(greetings.fgcolor), 0, 0, cmp->GetWidth(), cmp->GetHeight(), greetings.message);
+		Painter::DrawString(g, 1, 1, jgui::Color(greetings.fgcolor), 0, 0, size.width, size.height, greetings.message);
 
-		g->Flip();
+		// TODO:: mudar a forma de trabalho
+    // g->Flip();
 		
 		sleep(greetings.timeout);
 	} else if (_state == 3) {
@@ -129,7 +141,9 @@ bool FadeAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 
 		_color.SetAlpha(_progress);
 
-		Painter::DrawBox(g, _color, 0, gap, cmp->GetWidth(), cmp->GetHeight()-2*gap);
+    jgui::jsize_t size = cmp->GetSize();
+
+		Painter::DrawBox(g, _color, 0, gap, size.width, size.height-2*gap);
 	}
 	
 	usleep(delay*1000);

@@ -21,7 +21,7 @@
 #include <iostream>
 
 ComposeFrame::ComposeFrame(std::string title):
-	jgui::Frame(title)
+	jgui::Container() // title
 {
 }
 
@@ -29,7 +29,7 @@ ComposeFrame::~ComposeFrame()
 {
 }
 
-bool ComposeFrame::KeyPressed(jgui::KeyEvent *event)
+bool ComposeFrame::KeyPressed(jevent::KeyEvent *event)
 {
 	std::cout << "ComposeFrame:: " << std::endl;
 
@@ -40,6 +40,6 @@ bool ComposeFrame::KeyPressed(jgui::KeyEvent *event)
 
 void ComposeFrame::Paint(jgui::Graphics *g)
 {
-	jgui::Frame::Paint(g);
+	jgui::Container::Paint(g);
 }
 

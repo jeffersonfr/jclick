@@ -1,36 +1,34 @@
 #ifndef __MAINFRAME_PHOTOBOOTH_H
 #define __MAINFRAME_PHOTOBOOTH_H
 
-#include "jframe.h"
-#include "jthread.h"
-#include "jsemaphore.h"
-#include "jruntimeexception.h"
-#include "jparammapper.h"
-#include "jstringtokenizer.h"
-#include "jdebug.h"
-#include "jproperties.h"
-#include "jsystem.h"
-#include "jipcserver.h"
-#include "jthememanager.h"
-#include "jframegrabberlistener.h"
-#include "jplayer.h"
-#include "jvideodevicecontrol.h"
 #include "camerasettings.h"
 #include "animation.h"
 #include "levelframe.h"
 #include "menuframe.h"
 
-class MainFrame : public jgui::Frame, public jthread::Thread, public jmedia::FrameGrabberListener, public jipc::RemoteCallListener {
+#include "jgui/japplication.h"
+#include "jgui/jwindow.h"
+#include "jevent/jframegrabberlistener.h"
+#include "jipc/jremotecalllistener.h"
+#include "jmedia/jplayer.h"
+#include "jmedia/jvideodevicecontrol.h"
+
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
+class MainFrame : public jgui::Window, public jevent::FrameGrabberListener, public jipc::RemoteCallListener {
 
 	private:
 		std::vector<jgui::Image *> _borders;
 		std::vector<jgui::Image *> _shutter_frames;
 		std::vector<jgui::Image *> _timeline_frames;
 		std::vector<jgui::Image *> _loading_frames;
-		jthread::Mutex _mutex;
-		jthread::Semaphore _sem_lock;
-		jthread::Semaphore _sem_release;
-		jgui::Window *_current;
+    std::thread _thread;
+		std::mutex _mutex;
+    std::condition_variable _sem_lock;
+    std::condition_variable _sem_release;
+		jgui::Container *_current;
 		MenuFrame *_menu_frame;
 		LevelFrame *_level_frame;
 		jmedia::Player *_audio_player;
@@ -67,7 +65,7 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public jmedia::Fra
 
 		virtual void InitializeRegions();
 
-		virtual void FrameGrabbed(jmedia::FrameGrabberEvent *event);
+		virtual void FrameGrabbed(jevent::FrameGrabberEvent *event);
 
 		virtual void ReleaseFrame();
 
@@ -93,9 +91,9 @@ class MainFrame : public jgui::Frame, public jthread::Thread, public jmedia::Fra
 		
 		virtual void Paint(jgui::Graphics *g);
 
-		virtual bool KeyPressed(jgui::KeyEvent *event);
-		virtual bool MousePressed(jgui::MouseEvent *event);
-		virtual bool MouseWheel(jgui::MouseEvent *event);
+		virtual bool KeyPressed(jevent::KeyEvent *event);
+		virtual bool MousePressed(jevent::MouseEvent *event);
+		virtual bool MouseWheel(jevent::MouseEvent *event);
 
 		virtual void Run();
 
