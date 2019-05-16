@@ -324,7 +324,7 @@ void MenuFrame::DrawOptions(jgui::Graphics *g, std::string title, std::string id
 		item_type_t type = option.type;
 
 		if (type != LABEL_ITEM && type != ACTION_ITEM) {
-			g->DrawImage(_images["hspin"], tx+tw-sw-GAPX, ty+i*(TEXT_SIZE+GAPY)+GAPY, sw, sh);
+			g->DrawImage(_images["hspin"], {tx+tw-sw-GAPX, ty+i*(TEXT_SIZE+GAPY)+GAPY, sw, sh});
 		}
 
 		if (type == TIME_ITEM) {
@@ -567,8 +567,8 @@ void MenuFrame::DrawMenu(jgui::Graphics *g)
 			g->SetColor(jgui::Color::White);
 		}
 
-		g->DrawRectangle(ix+(i%OPTIONS_COLS)*(iw+igx), iy+(i/OPTIONS_COLS)*(ih+igy), iw, ih);
-		g->DrawImage(_images[menu[i][0]], ix+(i%OPTIONS_COLS)*(iw+igx), iy+(i/OPTIONS_COLS)*(ih+igy), iw, ih);
+		g->DrawRectangle({ix+(i%OPTIONS_COLS)*(iw+igx), iy+(i/OPTIONS_COLS)*(ih+igy), iw, ih});
+		g->DrawImage(_images[menu[i][0]], {ix+(i%OPTIONS_COLS)*(iw+igx), iy+(i/OPTIONS_COLS)*(ih+igy), iw, ih});
 	}
 }
 

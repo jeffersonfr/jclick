@@ -111,7 +111,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 
 	std::string dir = GetTextParam("config.directory");
 
-	GetParameters().clear();
+	RemoveAll();
 
 	SetTextParam("config.directory", dir);
 
@@ -448,7 +448,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 		if (_image_compose.size.width < 0 || _image_compose.size.width < 0) {
 			if (_image_compose.image != "") {
         jgui::Image *image = new jgui::BufferedImage(_image_compose.image);
-				jgui::jsize_t size = image->GetSize();
+				jgui::jsize_t<int> size = image->GetSize();
 
 				if (size.width > 0 && size.height > 0) {
 					_image_compose.size.width = size.width;
@@ -584,7 +584,7 @@ camera_input_t & CameraSettings::GetCameraInput()
 	return _camera_input;
 }
 
-jgui::jsize_t & CameraSettings::GetCameraMode()
+jgui::jsize_t<int> & CameraSettings::GetCameraMode()
 {
 	return _camera_mode;
 }

@@ -15,7 +15,7 @@
 SlideAnimation::SlideAnimation(std::vector<std::string> images):
 	Animation()
 {
-	jgui::jsize_t screen; // TODO:: = jgui::GFXHandler::GetInstance()->GetScreenSize();
+	jgui::jsize_t<int> screen; // TODO:: = jgui::GFXHandler::GetInstance()->GetScreenSize();
 	jgui::jinsets_t crop = __C->GetSourceCrop();
 	std::string temporary = __C->GetTempPath();
 	camera_greetings_t greetings = __C->GetCameraGreetings();
@@ -29,9 +29,9 @@ SlideAnimation::SlideAnimation(std::vector<std::string> images):
 
 	_color = jgui::Color(jcommon::StringUtils::ToLower(greetings.bgcolor));
 
-	jgui::jsize_t scale = screen;
+	jgui::jsize_t<int> scale = screen;
 
-	_offscreen = new jgui::BufferedImage(jgui::JPF_ARGB, scale.width, scale.height);
+	_offscreen = new jgui::BufferedImage(jgui::JPF_ARGB, scale);
 
 	screen.width = (screen.width - crop.left - crop.right) / 2;
 	screen.height = (screen.height - crop.top - crop.bottom) / 2;
@@ -39,7 +39,7 @@ SlideAnimation::SlideAnimation(std::vector<std::string> images):
 	int fw = count*(screen.width+SLIDEANIMATION_STEP);
 	int fh = screen.height;
 
-	_frames = new jgui::BufferedImage(jgui::JPF_ARGB, fw, fh);
+	_frames = new jgui::BufferedImage(jgui::JPF_ARGB, {fw, fh});
 
 	if (_frames == NULL) {
 		throw jexception::OutOfMemoryException(
@@ -47,14 +47,14 @@ SlideAnimation::SlideAnimation(std::vector<std::string> images):
 	}
 
 	jgui::Graphics *g = _frames->GetGraphics();
-  jgui::jsize_t fsize = _frames->GetSize();
+  jgui::jsize_t<int> fsize = _frames->GetSize();
 	
 	g->SetColor(_color);
-	g->FillRectangle(0, 0, fsize.width, fsize.height);
+	g->FillRectangle({0, 0, fsize.width, fsize.height});
 
 	for (int i=0; i<count; i++) {
 		jgui::Image *image = new jgui::BufferedImage(temporary + "/" + images[i]);
-		jgui::jsize_t size = image->GetSize();
+		jgui::jsize_t<int> size = image->GetSize();
 	
 		int iw = size.width;
 		int ih = size.height;
@@ -69,7 +69,7 @@ SlideAnimation::SlideAnimation(std::vector<std::string> images):
 			iw = (size.width * screen.height)/size.height;
 		}
 
-		g->DrawImage(image, i*(screen.width+SLIDEANIMATION_STEP)+(screen.width-iw)/2, (screen.height-ih)/2, iw, ih);
+		g->DrawImage(image, {i*(screen.width+SLIDEANIMATION_STEP)+(screen.width-iw)/2, (screen.height-ih)/2, iw, ih});
 
 		delete image;
 	}
@@ -85,7 +85,7 @@ bool SlideAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 {
 	camera_animation_t animation = __C->GetCameraAnimation();
 	camera_greetings_t greetings = __C->GetCameraGreetings();
-  jgui::jsize_t size = cmp->GetSize();
+  jgui::jsize_t<int> size = cmp->GetSize();
 	int delay = animation.delay;
 	int gap = 0; // (int)(cmp->GetHeight()*0.1);
 
@@ -103,7 +103,7 @@ bool SlideAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 
 		Painter::DrawBox(g, _color, 0, gap, size.width, size.height-2*gap);
 	} else if (_state == 1) {
-    jgui::jsize_t fsize = _frames->GetSize();
+    jgui::jsize_t<int> fsize = _frames->GetSize();
 
 		_progress = _progress - SLIDEANIMATION_STEP;
 
@@ -115,9 +115,9 @@ bool SlideAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 		if (_state == 1) {
 			_offscreen->GetGraphics()->SetColor(_color);
 			_offscreen->GetGraphics()->Clear();
-			_offscreen->GetGraphics()->DrawImage(_frames, _progress, 0);
+			_offscreen->GetGraphics()->DrawImage(_frames, jgui::jpoint_t<int>{_progress, 0});
 
-			g->DrawImage(_offscreen, 0, (size.height-fsize.height)/2);
+			g->DrawImage(_offscreen, jgui::jpoint_t<int>{0, (size.height-fsize.height)/2});
 		}
 	} else if (_state == 2) {
 		_state = 3;
@@ -127,7 +127,7 @@ bool SlideAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 
 		jgui::Image *image = new jgui::BufferedImage(greetings.background);
 
-		g->DrawImage(image, 0, 0, size.width, size.height-2*gap);
+		g->DrawImage(image, {0, 0, size.width, size.height-2*gap});
 
 		delete image;
 

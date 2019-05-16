@@ -36,10 +36,10 @@ class MainFrame : public jgui::Window, public jevent::FrameGrabberListener, publ
 		Animation *_animation;
 		jgui::Image *_frame;
 		jgui::Image *_screensaver;
-		jgui::jsize_t _screen;
-		jgui::jregion_t _wregion;
-		jgui::jregion_t _fregion;
-		jgui::jregion_t _cregion;
+		jgui::jsize_t<int> _screen;
+		jgui::jregion_t<int> _wregion;
+		jgui::jregion_t<int> _fregion;
+		jgui::jregion_t<int> _cregion;
 		int _border_index;
 		int _loading_index;
 		int _thumb;
@@ -74,8 +74,8 @@ class MainFrame : public jgui::Window, public jevent::FrameGrabberListener, publ
 		virtual void StartGrabber();
 		virtual void StopGrabber();
 
-		virtual jgui::jregion_t GetFrameBounds();
-		virtual jgui::jregion_t GetViewportBounds();
+		virtual jgui::jregion_t<int> GetFrameBounds();
+		virtual jgui::jregion_t<int> GetViewportBounds();
 
 		virtual void RandomBorder();
 		virtual void NextBorder();

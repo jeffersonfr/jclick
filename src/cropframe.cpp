@@ -24,7 +24,7 @@
 
 #define CROP_LINE_SIZE 4
 
-CropFrame::CropFrame(std::string title, jgui::jregion_t region, jgui::jinsets_t insets):
+CropFrame::CropFrame(std::string title, jgui::jregion_t<int> region, jgui::jinsets_t insets):
 	jgui::Container(/* title, */ region.x, region.y, region.width, region.height)
 {
 	_crop_region = region;
@@ -108,7 +108,7 @@ void CropFrame::Paint(jgui::Graphics *g)
 {
 	jgui::Container::Paint(g);
 
-	jgui::jregion_t bounds = GetVisibleBounds();
+	jgui::jregion_t<int> bounds = GetVisibleBounds();
 
 	bounds.width = bounds.width-2*CROP_LINE_SIZE;
 	bounds.height = bounds.height-2*CROP_LINE_SIZE;

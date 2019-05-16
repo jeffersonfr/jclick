@@ -32,7 +32,7 @@ void Painter::Initialize()
 		name = "default";
 	}
 
-	jgui::jsize_t screen; // TODO:: = jgui::GFXHandler::GetInstance()->GetScreenSize();
+	jgui::jsize_t<int> screen; // TODO:: = jgui::GFXHandler::GetInstance()->GetScreenSize();
 
 	int d = 960;
 
@@ -57,7 +57,7 @@ void Painter::DrawBorder(jgui::Graphics *g, jgui::Color color, int x, int y, int
 	g->SetColor(color);
 
 	for (int i=0; i<border_size; i++) {
-		g->DrawRectangle(x+i, y+i, w-2*i, h-2*i);
+		g->DrawRectangle({x+i, y+i, w-2*i, h-2*i});
 	}
 }
 
@@ -68,7 +68,7 @@ void Painter::DrawBox(jgui::Graphics *g, jgui::Color color, int x, int y, int w,
 	}
 
 	g->SetColor(color);
-	g->FillRectangle(x, y, w, h);
+	g->FillRectangle({x, y, w, h});
 }
 
 void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::Color color, int x, int y, std::string fmt)
@@ -103,11 +103,11 @@ void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgu
 
 	if (ss > 0) {
 		g->SetColor(0xff000000);
-		g->DrawString(tmp, x+ss, y+ss);
+		g->DrawString(tmp, jgui::jpoint_t<int>{x+ss, y+ss});
 	}
 
 	g->SetColor(color);
-	g->DrawString(tmp, x, y);
+	g->DrawString(tmp, jgui::jpoint_t<int>{x, y});
 }
 
 void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::Color color, int x, int y, int w, int h, jgui::jhorizontal_align_t halign, jgui::jvertical_align_t valign, const char *fmt, ...)
@@ -131,10 +131,10 @@ void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgu
 
 	if (ss > 0) {
 		g->SetColor(0xff000000);
-		g->DrawString(font->TruncateString(tmp, "...", w), x+ss, y+ss, w, h, halign, valign);
+		g->DrawString(font->TruncateString(tmp, "...", w), {x+ss, y+ss, w, h}, halign, valign);
 	}
 
 	g->SetColor(color);
-	g->DrawString(font->TruncateString(tmp, "...", w), x, y, w, h, halign, valign);
+	g->DrawString(font->TruncateString(tmp, "...", w), {x, y, w, h}, halign, valign);
 }
 

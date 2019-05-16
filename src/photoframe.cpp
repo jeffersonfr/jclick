@@ -50,7 +50,7 @@ PhotoFrame::PhotoFrame(jgui::Container *parent, std::string path):
 
 	Update();
 	
-  jgui::jsize_t size = parent->GetSize();
+  jgui::jsize_t<int> size = parent->GetSize();
 
 	SetBounds(0, 0, size.width, size.height);
 	SetVisible(false);
@@ -144,7 +144,7 @@ void PhotoFrame::Paint(jgui::Graphics *g)
 {
 	jgui::Container::Paint(g);
 
-	jgui::jregion_t bounds = GetVisibleBounds();
+	jgui::jregion_t<int> bounds = GetVisibleBounds();
 	jgui::jinsets_t insets = GetInsets();
 
 	int sw = bounds.width-insets.left-insets.right,
@@ -157,8 +157,8 @@ void PhotoFrame::Paint(jgui::Graphics *g)
 		return;
 	}
 
-	jgui::jsize_t screen; // TODO:: = jgui::GFXHandler::GetInstance()->GetScreenSize();
-	jgui::jsize_t isize;
+	jgui::jsize_t<int> screen; // TODO:: = jgui::GFXHandler::GetInstance()->GetScreenSize();
+	jgui::jsize_t<int> isize;
   
   jgui::Image *image = new jgui::BufferedImage(_images[_index]);
 
@@ -195,7 +195,7 @@ void PhotoFrame::Paint(jgui::Graphics *g)
 		}
 	}
 
-	g->DrawImage(image, (int)((sw-fw)/2)+insets.left, (int)((sh-fh)/2)+insets.top+bordersize, (int)fw, (int)fh);
+	g->DrawImage(image, {(int)((sw-fw)/2)+insets.left, (int)((sh-fh)/2)+insets.top+bordersize, (int)fw, (int)fh});
 	
 	delete image;
 

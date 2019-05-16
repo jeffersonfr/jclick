@@ -99,7 +99,7 @@ MainFrame::MainFrame():
 	_need_repaint;
 	_screensaver = NULL;
 
-  jgui::jsize_t size = GetSize();
+  jgui::jsize_t<int> size = GetSize();
 
 	_fregion.x = 0;
 	_fregion.y = 0;
@@ -166,7 +166,7 @@ void MainFrame::StartGrabber()
 
 	// TODO:: _grabber_player->Configure(size.width, size.height);
 	
-	jgui::jsize_t size = __C->GetCameraMode();
+	jgui::jsize_t<int> size = __C->GetCameraMode();
 
 	jmedia::VideoSizeControl *control = (jmedia::VideoSizeControl *)_grabber_player->GetControl("video.size");
 	
@@ -297,12 +297,12 @@ void MainFrame::LoadResources()
 		jgui::Image *image = new jgui::BufferedImage(timeline.image);
 
 		if (image != NULL) {
-			jgui::jsize_t isize = image->GetSize();
+			jgui::jsize_t<int> isize = image->GetSize();
 
 			isize.width = isize.width/3;
 
 			for (int i=0; i<3; i++) {
-				_timeline_frames.push_back(image->Crop(i*isize.width, 0, isize.width, isize.height));
+				_timeline_frames.push_back(image->Crop({i*isize.width, 0, isize.width, isize.height}));
 			}
 
 			delete image;
@@ -389,12 +389,12 @@ void MainFrame::LoadResources()
   _mutex.unlock();
 }
 
-jgui::jregion_t MainFrame::GetFrameBounds()
+jgui::jregion_t<int> MainFrame::GetFrameBounds()
 {
 	return _fregion;
 }
 
-jgui::jregion_t MainFrame::GetViewportBounds()
+jgui::jregion_t<int> MainFrame::GetViewportBounds()
 {
 	return _wregion;
 }
@@ -545,7 +545,7 @@ void MainFrame::FrameGrabbed(jevent::FrameGrabberEvent *event)
 	}
 
   jgui::Image *frame = reinterpret_cast<jgui::Image *>(event->GetSource());
-	jgui::jsize_t t = frame->GetSize();
+	jgui::jsize_t<int> t = frame->GetSize();
 
 	_mutex.lock();
 
@@ -573,7 +573,7 @@ void MainFrame::FrameGrabbed(jevent::FrameGrabberEvent *event)
 		int count = t.width*t.height;
 		uint32_t *ptr = new uint32_t[count];
 
-		_frame->GetGraphics()->GetRGBArray(&ptr, 0, 0, t.width, t.height);
+		_frame->GetGraphics()->GetRGBArray(ptr, {0, 0, t.width, t.height});
 
 		for (int i=0; i<count; i++) {
 			uint32_t pixel = ptr[i];
@@ -586,7 +586,7 @@ void MainFrame::FrameGrabbed(jevent::FrameGrabberEvent *event)
 			ptr[i] = 0xff000000 | (y << 16) | (y << 8) | (y << 0);
 		}
 
-		_frame->GetGraphics()->SetRGBArray(ptr, 0, 0, t.width, t.height);
+		_frame->GetGraphics()->SetRGBArray(ptr, {0, 0, t.width, t.height});
 
 		delete [] ptr;
 	}
@@ -653,7 +653,7 @@ bool MainFrame::MouseWheel(jevent::MouseEvent *event)
 		return true;
 	}
 
-	if (event->GetClickCount() > 0) {
+	if (event->GetClicks() > 0) {
 		NextBorder();
 	} else {
 		PreviousBorder();
@@ -875,15 +875,15 @@ void MainFrame::Paint(jgui::Graphics *g)
 			g->Clear();
 		}
 
-		g->DrawImage(_frame, _fregion.x, _fregion.y, _fregion.width, _fregion.height);
+		g->DrawImage(_frame, {_fregion.x, _fregion.y, _fregion.width, _fregion.height});
 
 		if (_borders.size() > 0) {
-			g->DrawImage(_borders[_border_index], _fregion.x, _fregion.y, _fregion.width, _fregion.height);
+			g->DrawImage(_borders[_border_index], {_fregion.x, _fregion.y, _fregion.width, _fregion.height});
 		}
 
 		if (_view_crop == true) {
 			jgui::jinsets_t insets = __C->GetSourceCrop();
-			jgui::jregion_t region = GetFrameBounds();
+			jgui::jregion_t<int> region = GetFrameBounds();
 			int tx = (insets.left*_fregion.width)/100;
 			int ty = (insets.top*_fregion.height)/100;
 			jgui::jpen_t pen = g->GetPen();
@@ -892,12 +892,7 @@ void MainFrame::Paint(jgui::Graphics *g)
 
 			g->SetPen(pen);
 			g->SetColor(0xf0f00000);
-			g->DrawRectangle(
-				tx+region.x, 
-				ty+region.y, 
-				region.width-2*tx, 
-				region.height-2*ty
-			);
+			g->DrawRectangle({tx+region.x, ty+region.y, region.width-2*tx, region.height-2*ty});
 		}
 	}
 
@@ -923,11 +918,11 @@ void MainFrame::Paint(jgui::Graphics *g)
 			color.SetAlpha(0xff-_fade);
 
 			g->SetColor(color);
-			g->FillRectangle(_fregion.x, _fregion.y, _fregion.width, _fregion.height);
+			g->FillRectangle({_fregion.x, _fregion.y, _fregion.width, _fregion.height});
 		} else if (shutter.type == "image") {
 			shutter.range_max = _shutter_frames.size();
 
-			g->DrawImage(_shutter_frames[_fade], _fregion.x, _fregion.y, _fregion.width, _fregion.height);
+			g->DrawImage(_shutter_frames[_fade], {_fregion.x, _fregion.y, _fregion.width, _fregion.height});
 		} 
 
 		usleep(shutter.delay*1000);
@@ -944,7 +939,7 @@ void MainFrame::Paint(jgui::Graphics *g)
 	} else {
 		if (_counter < 0) {
 			if (_screensaver != NULL) {
-				g->DrawImage(_screensaver, _fregion.x, _fregion.y, _fregion.width, _fregion.height);
+				g->DrawImage(_screensaver, {_fregion.x, _fregion.y, _fregion.width, _fregion.height});
 			}
 	
 			jgui::Container::Paint(g);
@@ -955,17 +950,17 @@ void MainFrame::Paint(jgui::Graphics *g)
 			int wy = 10;
 
 			g->SetColor(jgui::Color("black"));
-			g->FillRectangle(_fregion.x, _fregion.height-dy, _fregion.width, wy);
+			g->FillRectangle({_fregion.x, _fregion.height-dy, _fregion.width, wy});
 			g->SetColor(jgui::Color(t.color));
-			g->FillRectangle(_fregion.x, _fregion.height-dy+2, _fregion.width, 2);
-			g->FillRectangle(_fregion.x, _fregion.height-dy+6, _fregion.width, 2);
+			g->FillRectangle({_fregion.x, _fregion.height-dy+2, _fregion.width, 2});
+			g->FillRectangle({_fregion.x, _fregion.height-dy+6, _fregion.width, 2});
 
 			int k = _fregion.width/__C->GetThumbsCount()/2;
 
 			for (int i=0; i<__C->GetThumbsCount(); i++) {
 				if (_timeline_frames.size() == 0) {
 					g->SetColor(jgui::Color("black"));
-					g->FillEllipse(_fregion.x+k, _fregion.height-dy+wy/2, t.size.width/2, t.size.height/2);
+					g->FillEllipse({_fregion.x+k, _fregion.height-dy+wy/2}, {t.size.width/2, t.size.height/2});
 
 					if (i < _thumb) {
 						g->SetColor(jgui::Color("green"));
@@ -975,7 +970,7 @@ void MainFrame::Paint(jgui::Graphics *g)
 						g->SetColor(jgui::Color("black"));
 					}
 
-					g->FillEllipse(_fregion.x+k, _fregion.height-dy+wy/2, t.size.width/2, t.size.height/2);
+					g->FillEllipse({_fregion.x+k, _fregion.height-dy+wy/2}, {t.size.width/2, t.size.height/2});
 				} else {
 					int index = 0;
 
@@ -985,7 +980,7 @@ void MainFrame::Paint(jgui::Graphics *g)
 						index = 1;
 					}
 
-					g->DrawImage(_timeline_frames[index], _fregion.x+k-t.size.width/2, _fregion.height-dy+wy/2-t.size.height/2, t.size.width, t.size.height);
+					g->DrawImage(_timeline_frames[index], {_fregion.x+k-t.size.width/2, _fregion.height-dy+wy/2-t.size.height/2, t.size.width, t.size.height});
 				}
 
 				k = k+_fregion.width/__C->GetThumbsCount();
@@ -995,12 +990,12 @@ void MainFrame::Paint(jgui::Graphics *g)
 				Painter::DrawString(g, 3, 4, 0xfff0f0f0, 0, 0, _wregion.width, _wregion.height, jgui::JHA_CENTER, jgui::JVA_CENTER, "%d", _counter);
 			} else {
 				if (_thumb == __C->GetThumbsCount()) {
-					jgui::jsize_t t = GetSize();
+					jgui::jsize_t<int> t = GetSize();
 					int iw = t.width/4;
 					int ih = t.height/22;
 
 					// Painter::DrawString(g, 0, 4, 0xfff0f0f0, 0, 0, _wregion.width, _wregion.height, __L->GetParam("mainframe.waiting").c_str());
-					g->DrawImage(_loading_frames[_loading_index], (t.width-iw)/2, (t.height-ih)/2, iw, ih);
+					g->DrawImage(_loading_frames[_loading_index], {(t.width-iw)/2, (t.height-ih)/2, iw, ih});
 
 					_loading_index = (_loading_index+1)%_loading_frames.size();;
 				}
@@ -1052,13 +1047,13 @@ void MainFrame::Run()
 
 		// INFO:: create a image to dump 
 		jgui::Image *clone = dynamic_cast<jgui::Image *>(_frame->Clone());
-		jgui::jsize_t size = _frame->GetSize();
+		jgui::jsize_t<int> size = _frame->GetSize();
 
 		if (_borders.size() > 0) {
 			jgui::Graphics *g = clone->GetGraphics();
 
 			g->SetCompositeFlags(jgui::JCF_SRC_OVER);
-			g->DrawImage(_borders[_border_index], 0, 0, size.width, size.height);
+			g->DrawImage(_borders[_border_index], {0, 0, size.width, size.height});
 		}
 		
 		jgui::Image *image = clone;

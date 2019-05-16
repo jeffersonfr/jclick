@@ -147,15 +147,15 @@ Document * Preferences::Create(std::string prefs)
 
 	std::string path = PREFERENCES_PATH(prefs, "xml");
 
-	jcommon::XmlDocument doc(path);
+	jcommon::XMLDocument doc;
 
-	if (!doc.LoadFile()) {
+	if (!doc.LoadFile(path.c_str())) {
 		return NULL;
 	}
 
-	jcommon::XmlElement *root = doc.RootElement()->FirstChildElement();
-	jcommon::XmlElement *psg;
-	jcommon::XmlAttribute *attr;
+	jcommon::XMLElement *root = doc.RootElement()->FirstChildElement();
+	jcommon::XMLElement *psg;
+	const jcommon::XMLAttribute *attr;
 
 	while (root != NULL) {
 		Element *element = new Element(root->Value());

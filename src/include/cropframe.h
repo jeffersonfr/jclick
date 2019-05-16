@@ -34,12 +34,12 @@ class MainFrame;
 class CropFrame : public jgui::Container {
 
 	private:
-		jgui::jregion_t _crop_region;
+		jgui::jregion_t<int> _crop_region;
 		jgui::jinsets_t _crop_insets;
 		bool _updated;
 
 	public:
-		CropFrame(std::string title, jgui::jregion_t region, jgui::jinsets_t insets);
+		CropFrame(std::string title, jgui::jregion_t<int> region, jgui::jinsets_t insets);
 		virtual ~CropFrame();
 
 		virtual jgui::jinsets_t GetCrop();
