@@ -101,17 +101,15 @@ MainFrame::MainFrame():
 
   jgui::jsize_t<int> size = GetSize();
 
-	_fregion.x = 0;
-	_fregion.y = 0;
-	_fregion.width = size.width;
-	_fregion.height = size.height;
+	_fregion = {
+    0, 0, size
+  };
 
-	_wregion.x = 0;
-	_wregion.y = 0;
-	_wregion.width = size.width;
-	_wregion.height = size.height;
+	_wregion = {
+    0, 0, size
+  };
 
-	jgui::jinsets_t insets = GetInsets();
+	jgui::jinsets_t<int> insets = GetInsets();
 
 	LoadResources();
 
@@ -389,12 +387,12 @@ void MainFrame::LoadResources()
   _mutex.unlock();
 }
 
-jgui::jregion_t<int> MainFrame::GetFrameBounds()
+jgui::jrect_t<int> MainFrame::GetFrameBounds()
 {
 	return _fregion;
 }
 
-jgui::jregion_t<int> MainFrame::GetViewportBounds()
+jgui::jrect_t<int> MainFrame::GetViewportBounds()
 {
 	return _wregion;
 }
@@ -509,27 +507,27 @@ void MainFrame::PreviousBorder()
 
 void MainFrame::InitializeRegions()
 {
-	jgui::jinsets_t t = __C->GetCameraViewport();
-	int tx = (t.left*_wregion.width)/100;
-	int ty = (t.top*_wregion.height)/100;
-	int tw = _wregion.width-2*tx;
-	int th = _wregion.height-2*ty;
+	jgui::jinsets_t<int> t = __C->GetCameraViewport();
+	int tx = (t.left*_wregion.size.width)/100;
+	int ty = (t.top*_wregion.size.height)/100;
+	int tw = _wregion.size.width - 2*tx;
+	int th = _wregion.size.height - 2*ty;
 
 	if (__C->GetCameraViewportAspect() == CVA_FULL) {
-		_fregion.height = th;
-		_fregion.width = tw;
+		_fregion.size.height = th;
+		_fregion.size.width = tw;
 	} else { // CVA_KEEP
-		_fregion.height = th;
-		_fregion.width = (_fregion.height*_cregion.width)/_cregion.height;
+		_fregion.size.height = th;
+		_fregion.size.width = (_fregion.size.height*_cregion.size.width)/_cregion.size.height;
 
-		if (_fregion.width > tw) {
-			_fregion.width = tw;
-			_fregion.height = (_fregion.width*_cregion.height)/_cregion.width;
+		if (_fregion.size.width > tw) {
+			_fregion.size.width = tw;
+			_fregion.size.height = (_fregion.size.width*_cregion.size.height)/_cregion.size.width;
 		}
 	}
 
-	_fregion.y = ty+(_wregion.height-2*ty-_fregion.height)/2;
-	_fregion.x = tx+(_wregion.width-2*tx-_fregion.width)/2;
+	_fregion.point.y = ty + (_wregion.size.height - 2*ty - _fregion.size.height)/2;
+	_fregion.point.x = tx + (_wregion.size.width - 2*tx - _fregion.size.width)/2;
 	
 	_need_repaint = true;
 
@@ -550,10 +548,10 @@ void MainFrame::FrameGrabbed(jevent::FrameGrabberEvent *event)
 	_mutex.lock();
 
 	if (_frame == NULL) {
-		_cregion.x = 0;
-		_cregion.y = 0;
-		_cregion.width = t.width;
-		_cregion.height = t.height;
+		_cregion.point.x = 0;
+		_cregion.point.y = 0;
+		_cregion.size.width = t.width;
+		_cregion.size.height = t.height;
 
 		InitializeRegions();
 	} else {
@@ -875,24 +873,24 @@ void MainFrame::Paint(jgui::Graphics *g)
 			g->Clear();
 		}
 
-		g->DrawImage(_frame, {_fregion.x, _fregion.y, _fregion.width, _fregion.height});
+		g->DrawImage(_frame, _fregion);
 
 		if (_borders.size() > 0) {
-			g->DrawImage(_borders[_border_index], {_fregion.x, _fregion.y, _fregion.width, _fregion.height});
+			g->DrawImage(_borders[_border_index], _fregion);
 		}
 
 		if (_view_crop == true) {
-			jgui::jinsets_t insets = __C->GetSourceCrop();
-			jgui::jregion_t<int> region = GetFrameBounds();
-			int tx = (insets.left*_fregion.width)/100;
-			int ty = (insets.top*_fregion.height)/100;
+			jgui::jinsets_t<int> insets = __C->GetSourceCrop();
+			jgui::jrect_t<int> region = GetFrameBounds();
+			int tx = (insets.left*_fregion.size.width)/100;
+			int ty = (insets.top*_fregion.size.height)/100;
 			jgui::jpen_t pen = g->GetPen();
 
 			pen.width = 4;
 
 			g->SetPen(pen);
 			g->SetColor(0xf0f00000);
-			g->DrawRectangle({tx+region.x, ty+region.y, region.width-2*tx, region.height-2*ty});
+			g->DrawRectangle({tx + region.point.x, ty + region.point.y, region.size.width - 2*tx, region.size.height - 2*ty});
 		}
 	}
 
@@ -918,11 +916,11 @@ void MainFrame::Paint(jgui::Graphics *g)
 			color.SetAlpha(0xff-_fade);
 
 			g->SetColor(color);
-			g->FillRectangle({_fregion.x, _fregion.y, _fregion.width, _fregion.height});
+			g->FillRectangle(_fregion);
 		} else if (shutter.type == "image") {
 			shutter.range_max = _shutter_frames.size();
 
-			g->DrawImage(_shutter_frames[_fade], {_fregion.x, _fregion.y, _fregion.width, _fregion.height});
+			g->DrawImage(_shutter_frames[_fade], _fregion);
 		} 
 
 		usleep(shutter.delay*1000);
@@ -939,7 +937,7 @@ void MainFrame::Paint(jgui::Graphics *g)
 	} else {
 		if (_counter < 0) {
 			if (_screensaver != NULL) {
-				g->DrawImage(_screensaver, {_fregion.x, _fregion.y, _fregion.width, _fregion.height});
+				g->DrawImage(_screensaver, _fregion);
 			}
 	
 			jgui::Container::Paint(g);
@@ -950,17 +948,17 @@ void MainFrame::Paint(jgui::Graphics *g)
 			int wy = 10;
 
 			g->SetColor(jgui::Color("black"));
-			g->FillRectangle({_fregion.x, _fregion.height-dy, _fregion.width, wy});
+			g->FillRectangle({_fregion.point.x, _fregion.size.height - dy, _fregion.size.width, wy});
 			g->SetColor(jgui::Color(t.color));
-			g->FillRectangle({_fregion.x, _fregion.height-dy+2, _fregion.width, 2});
-			g->FillRectangle({_fregion.x, _fregion.height-dy+6, _fregion.width, 2});
+			g->FillRectangle({_fregion.point.x, _fregion.size.height - dy + 2, _fregion.size.width, 2});
+			g->FillRectangle({_fregion.point.x, _fregion.size.height - dy + 6, _fregion.size.width, 2});
 
-			int k = _fregion.width/__C->GetThumbsCount()/2;
+			int k = _fregion.size.width/__C->GetThumbsCount()/2;
 
 			for (int i=0; i<__C->GetThumbsCount(); i++) {
 				if (_timeline_frames.size() == 0) {
 					g->SetColor(jgui::Color("black"));
-					g->FillEllipse({_fregion.x+k, _fregion.height-dy+wy/2}, {t.size.width/2, t.size.height/2});
+					g->FillEllipse({_fregion.point.x + k, _fregion.size.height - dy + wy/2}, {t.size.width/2, t.size.height/2});
 
 					if (i < _thumb) {
 						g->SetColor(jgui::Color("green"));
@@ -970,7 +968,7 @@ void MainFrame::Paint(jgui::Graphics *g)
 						g->SetColor(jgui::Color("black"));
 					}
 
-					g->FillEllipse({_fregion.x+k, _fregion.height-dy+wy/2}, {t.size.width/2, t.size.height/2});
+					g->FillEllipse({_fregion.point.x + k, _fregion.size.height - dy + wy/2}, {t.size.width/2, t.size.height/2});
 				} else {
 					int index = 0;
 
@@ -980,14 +978,14 @@ void MainFrame::Paint(jgui::Graphics *g)
 						index = 1;
 					}
 
-					g->DrawImage(_timeline_frames[index], {_fregion.x+k-t.size.width/2, _fregion.height-dy+wy/2-t.size.height/2, t.size.width, t.size.height});
+					g->DrawImage(_timeline_frames[index], {_fregion.point.x + k - t.size.width/2, _fregion.size.height - dy + wy/2 - t.size.height/2, t.size.width, t.size.height});
 				}
 
-				k = k+_fregion.width/__C->GetThumbsCount();
+				k = k + _fregion.size.width/__C->GetThumbsCount();
 			}
 
 			if (_counter > 0) {
-				Painter::DrawString(g, 3, 4, 0xfff0f0f0, 0, 0, _wregion.width, _wregion.height, jgui::JHA_CENTER, jgui::JVA_CENTER, "%d", _counter);
+				Painter::DrawString(g, 3, 4, 0xfff0f0f0, 0, 0, _wregion.size.width, _wregion.size.height, jgui::JHA_CENTER, jgui::JVA_CENTER, "%d", _counter);
 			} else {
 				if (_thumb == __C->GetThumbsCount()) {
 					jgui::jsize_t<int> t = GetSize();
@@ -1014,7 +1012,7 @@ void MainFrame::Run()
 	camera_shutter_t shutter = __C->GetCameraShutter();
 	camera_animation_t animation = __C->GetCameraAnimation();
 	camera_compose_t compose = __C->GetComposition();
-	jgui::jinsets_t crop = __C->GetSourceCrop();
+	jgui::jinsets_t<int> crop = __C->GetSourceCrop();
 
 	// create temporary dir
 	Command("mkdir -p \"%s\"", temporary.c_str());
@@ -1089,7 +1087,7 @@ void MainFrame::Run()
 		int ty = (crop.top*size.height)/100;
 
 		Command("mogrify -crop %dx%d+%d+%d \"%s/%s\"", 
-				_cregion.width-2*tx, _cregion.height-2*ty, tx, ty, temporary.c_str(), temp.c_str());
+				_cregion.size.width - 2*tx, _cregion.size.height - 2*ty, tx, ty, temporary.c_str(), temp.c_str());
 
 		if (_running == false) {
 			goto _run_cleanup;
@@ -1100,7 +1098,7 @@ void MainFrame::Run()
 				camera_photo_t t = dst[i];
 
 				Command("convert -size %dx%d xc:%s \"%s/camera_%04d.png\" -geometry %dx%d -gravity center -composite \"%s/%s\"", 
-						t.region.width, t.region.height, compose.color.c_str(), temporary.c_str(), i, t.region.width, t.region.height, temporary.c_str(), temp.c_str());
+						t.region.size.width, t.region.size.height, compose.color.c_str(), temporary.c_str(), i, t.region.size.width, t.region.size.height, temporary.c_str(), temp.c_str());
 			}
 		}
 
@@ -1113,7 +1111,7 @@ void MainFrame::Run()
 
 			// INFO:: zindex stacks the frames over each other
 			Command("convert \"%s/image-background.png\" -draw \"Translate %d,%d Rotate %d Image Over 0,0 %d,%d '%s/%s'\" \"%s/image-background.png\"", 
-					temporary.c_str(), t.region.x, t.region.y, t.degrees, t.region.width, t.region.height, temporary.c_str(), temp.c_str(), temporary.c_str());
+					temporary.c_str(), t.region.point.x, t.region.point.y, t.degrees, t.region.size.width, t.region.size.height, temporary.c_str(), temp.c_str(), temporary.c_str());
 		}
 
 		sleep(__C->GetCameraInterval());

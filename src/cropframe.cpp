@@ -24,8 +24,8 @@
 
 #define CROP_LINE_SIZE 4
 
-CropFrame::CropFrame(std::string title, jgui::jregion_t<int> region, jgui::jinsets_t insets):
-	jgui::Container(/* title, */ region.x, region.y, region.width, region.height)
+CropFrame::CropFrame(std::string title, jgui::jrect_t<int> region, jgui::jinsets_t<int> insets):
+	jgui::Container(/* title, */ region.point.x, region.point.y, region.size.width, region.size.height)
 {
 	_crop_region = region;
 	_crop_insets = insets;
@@ -36,7 +36,7 @@ CropFrame::~CropFrame()
 {
 }
 
-jgui::jinsets_t CropFrame::GetCrop()
+jgui::jinsets_t<int> CropFrame::GetCrop()
 {
 	return _crop_insets;
 }
@@ -108,20 +108,20 @@ void CropFrame::Paint(jgui::Graphics *g)
 {
 	jgui::Container::Paint(g);
 
-	jgui::jregion_t<int> bounds = GetVisibleBounds();
+	jgui::jrect_t<int> bounds = GetVisibleBounds();
 
-	bounds.width = bounds.width-2*CROP_LINE_SIZE;
-	bounds.height = bounds.height-2*CROP_LINE_SIZE;
+	bounds.size.width = bounds.size.width - 2*CROP_LINE_SIZE;
+	bounds.size.height = bounds.size.height - 2*CROP_LINE_SIZE;
 
-	int tx = (_crop_insets.left*bounds.width)/100;
-	int ty = (_crop_insets.top*bounds.height)/100;
+	int tx = (_crop_insets.left*bounds.size.width)/100;
+	int ty = (_crop_insets.top*bounds.size.height)/100;
 
-	Painter::DrawBorder(g, 0xf0f00000, tx+CROP_LINE_SIZE, ty+CROP_LINE_SIZE, bounds.width-2*tx, bounds.height-2*ty, CROP_LINE_SIZE);
+	Painter::DrawBorder(g, 0xf0f00000, tx + CROP_LINE_SIZE, ty + CROP_LINE_SIZE, bounds.size.width - 2*tx, bounds.size.height - 2*ty, CROP_LINE_SIZE);
 	
 	int bw = 320,
 			bh = 120,
-			bx = (bounds.width-bw)/2,
-			by = (bounds.height-bh)/2;
+			bx = (bounds.size.width - bw)/2,
+			by = (bounds.size.height - bh)/2;
 	char tmp[256];
 
 	sprintf(tmp, "%d%%, %d%%", _crop_insets.left, _crop_insets.top);

@@ -24,13 +24,13 @@
 LevelFrame::LevelFrame(jgui::Container *parent):
 	jgui::Component()
 {
-	jgui::jregion_t t = parent->GetVisibleBounds();
+	jgui::jrect_t t = parent->GetVisibleBounds();
 
 	_level = 0;
 	_timeout = 0;
   _is_running = false;
 
-	SetBounds((t.width-t.width/2)/2, t.height-t.height/3, t.width/2, t.height/4);
+	SetBounds((t.size.width - t.size.width/2)/2, t.size.height - t.size.height/3, t.size.width/2, t.size.height/4);
 	SetVisible(false);
 }
 
@@ -68,11 +68,11 @@ void LevelFrame::Paint(jgui::Graphics *g)
 {
 	// jgui::Component::Paint(g);
 
-	jgui::jregion_t bounds = GetVisibleBounds();
+	jgui::jrect_t bounds = GetVisibleBounds();
 
 	int gap = 8;
-	int sw = bounds.width-2*gap,
-			sh = bounds.height;
+	int sw = bounds.size.width - 2*gap,
+			sh = bounds.size.height;
 	int level = (_level < 0)?0:(_level > 100)?100:_level;
 
 	jgui::Font *font = Painter::GetFont(1);

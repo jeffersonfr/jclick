@@ -295,7 +295,7 @@ void CameraSettings::LoadConfiguration(std::string file)
 	{
 		std::map<std::string, std::string> params = GetParams(GetTextParam("camera.greetings"));
 
-		jgui::jinsets_t margin;
+		jgui::jinsets_t<int> margin;
 
 		margin.left = 0;
 		margin.top = 0;
@@ -386,10 +386,10 @@ void CameraSettings::LoadConfiguration(std::string file)
 
 			camera_photo_t t;
 
-			t.region.x = atoi(params.GetToken(0).c_str());
-			t.region.y = atoi(params.GetToken(1).c_str());
-			t.region.width = atoi(params.GetToken(2).c_str());
-			t.region.height = atoi(params.GetToken(3).c_str());
+			t.region.point.x = atoi(params.GetToken(0).c_str());
+			t.region.point.y = atoi(params.GetToken(1).c_str());
+			t.region.size.width = atoi(params.GetToken(2).c_str());
+			t.region.size.height = atoi(params.GetToken(3).c_str());
 			t.degrees = 0;
 
 			if (params.GetSize() == 5) {
@@ -589,7 +589,7 @@ jgui::jsize_t<int> & CameraSettings::GetCameraMode()
 	return _camera_mode;
 }
 
-jgui::jinsets_t & CameraSettings::GetCameraViewport()
+jgui::jinsets_t<int> & CameraSettings::GetCameraViewport()
 {
 	return _camera_viewport;
 }
@@ -610,7 +610,7 @@ bool CameraSettings::GetCameraViewportFlip()
 	return GetBooleanParam("camera.viewport.flip");
 }
 
-jgui::jinsets_t & CameraSettings::GetSourceCrop()
+jgui::jinsets_t<int> & CameraSettings::GetSourceCrop()
 {
 	return _image_crop;
 }
@@ -625,7 +625,7 @@ camera_compose_t & CameraSettings::GetComposition()
 	return _image_compose;
 }
 
-void CameraSettings::SetCameraViewport(jgui::jinsets_t insets)
+void CameraSettings::SetCameraViewport(jgui::jinsets_t<int> insets)
 {
 	jcommon::Properties p(_config_file);
 	char tmp[255];
@@ -642,7 +642,7 @@ void CameraSettings::SetCameraViewport(jgui::jinsets_t insets)
 	}
 }
 
-void CameraSettings::SetSourceCrop(jgui::jinsets_t insets)
+void CameraSettings::SetSourceCrop(jgui::jinsets_t<int> insets)
 {
 	jcommon::Properties p(_config_file);
 	char tmp[255];

@@ -32,7 +32,7 @@
 class ComposeFrame : public jgui::Container {
 
 	private:
-		jgui::jinsets_t _crop_insets;
+		jgui::jinsets_t<int> _crop_insets;
 
 	public:
 		ComposeFrame(std::string title);

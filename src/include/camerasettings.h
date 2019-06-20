@@ -15,7 +15,7 @@ struct camera_animation_t {
 };
 
 struct camera_photo_t {
-	jgui::jregion_t<int> region;
+	jgui::jrect_t<int> region;
 	int degrees;
 };
 
@@ -47,7 +47,7 @@ struct camera_shutter_timeline_t {
 };
 
 struct camera_greetings_t {
-	jgui::jinsets_t margin;
+	jgui::jinsets_t<int> margin;
 	std::string bgcolor;
 	std::string fgcolor;
 	std::string loading;
@@ -73,8 +73,8 @@ class CameraSettings : public jcommon::ParamMapper {
 		camera_shutter_t _camera_shutter;
 		camera_shutter_timeline_t _camera_timeline;
 		camera_greetings_t _camera_greetings;
-		jgui::jinsets_t _image_crop;
-		jgui::jinsets_t _camera_viewport;
+		jgui::jinsets_t<int> _image_crop;
+		jgui::jinsets_t<int> _camera_viewport;
 		jgui::jsize_t<int> _camera_mode;
 		std::string _config_file;
 		std::string _image_format;
@@ -114,25 +114,25 @@ class CameraSettings : public jcommon::ParamMapper {
 		camera_greetings_t & GetCameraGreetings();
 		camera_input_t & GetCameraInput();
 		jgui::jsize_t<int> & GetCameraMode();
-		jgui::jinsets_t & GetCameraViewport();
+		jgui::jinsets_t<int> & GetCameraViewport();
 		camera_viewport_aspect GetCameraViewportAspect();
 		bool GetCameraViewportFlip();
-		jgui::jinsets_t & GetSourceCrop();
+		jgui::jinsets_t<int> & GetSourceCrop();
 		std::vector<camera_photo_t> & GetDestinationRegions();
 		camera_compose_t & GetComposition();
 
 		void SetSystemLanguage(std::string language);
-		void SetCameraViewport(jgui::jinsets_t insets);
+		void SetCameraViewport(jgui::jinsets_t<int> insets);
 		void SetCameraViewportAspect(std::string aspect);
-		void SetSourceCrop(jgui::jinsets_t insets);
+		void SetSourceCrop(jgui::jinsets_t<int> insets);
 		void SetImageFormat(std::string format);
 
 };
 
-jgui::jinsets_t ScreenToVirtual(jgui::jsize_t<int> screen, jgui::jsize_t<int> scale, jgui::jinsets_t t);
-jgui::jregion_t<int> ScreenToVirtual(jgui::jsize_t<int> screen, jgui::jsize_t<int> scale, jgui::jregion_t<int> t);
+jgui::jinsets_t<int> ScreenToVirtual(jgui::jsize_t<int> screen, jgui::jsize_t<int> scale, jgui::jinsets_t<int> t);
+jgui::jrect_t<int> ScreenToVirtual(jgui::jsize_t<int> screen, jgui::jsize_t<int> scale, jgui::jrect_t<int> t);
 
-jgui::jinsets_t VirtualToScreen(jgui::jsize_t<int> screen, jgui::jsize_t<int> scale, jgui::jinsets_t t);
-jgui::jregion_t<int> VirtualToScreen(jgui::jsize_t<int> screen, jgui::jsize_t<int> scale, jgui::jregion_t<int> t);
+jgui::jinsets_t<int> VirtualToScreen(jgui::jsize_t<int> screen, jgui::jsize_t<int> scale, jgui::jinsets_t<int> t);
+jgui::jrect_t<int> VirtualToScreen(jgui::jsize_t<int> screen, jgui::jsize_t<int> scale, jgui::jrect_t<int> t);
 
 #endif

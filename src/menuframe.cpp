@@ -60,7 +60,7 @@ std::string menu[][2] = {
 MenuFrame::MenuFrame(MainFrame *parent):
 	jgui::Container(/* __L->GetParam("menuframe.title") */)
 {
-	jgui::jregion_t t = parent->GetVisibleBounds();
+	jgui::jrect_t t = parent->GetVisibleBounds();
 
 	menu_options.clear();
 
@@ -76,7 +76,7 @@ MenuFrame::MenuFrame(MainFrame *parent):
 	_images["hspin"] = new jgui::BufferedImage(__C->GetResourcesPath() + "/" + "images/hspin.png");
 	_images["vspin"] = new jgui::BufferedImage(__C->GetResourcesPath() + "/" + "images/vspin.png");
 
-	SetBounds((t.width-t.width*0.60)/2, t.height*0.10, t.width*0.60, t.height*0.80);
+	SetBounds((t.size.width - t.size.width*0.60)/2, t.size.height*0.10, t.size.width*0.60, t.size.height*0.80);
 	
 	_photo_frame = new PhotoFrame(this, __C->GetPhotosPath());
 
@@ -147,7 +147,7 @@ void MenuFrame::OnAction(std::string state, std::string id, int options_index)
 		if (options_index == 4) {
       /* TODO::
 			jgui::FileChooserDialogBox *frame = new jgui::FileChooserDialogBox(__L->GetParam("menuframe.system.load_configuration"), __C->GetResourcesPath());
-			jgui::jregion_t t = frame->GetVisibleBounds();
+			jgui::jrect_t t = frame->GetVisibleBounds();
 			
 			frame->SetExtensionIgnoreCase(true);
 			frame->AddExtension("conf");
@@ -167,7 +167,7 @@ void MenuFrame::OnAction(std::string state, std::string id, int options_index)
 
 void MenuFrame::DataChanged(jcommon::ParamMapper *params)
 {
-	jgui::jinsets_t insets;
+	jgui::jinsets_t<int> insets;
 
 	insets.left = params->GetIntegerParam("left");
 	insets.top = params->GetIntegerParam("top");
