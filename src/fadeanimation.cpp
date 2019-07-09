@@ -25,7 +25,7 @@ FadeAnimation::FadeAnimation(std::vector<std::string> images):
 	_progress = 0; 
 	_index = 0;
 
-	_color = jgui::Color(jcommon::StringUtils::ToLower(greetings.bgcolor));
+	_color = jgui::jcolor_t<float>(jcommon::StringUtils::ToLower(greetings.bgcolor));
 
 	screen.width = (screen.width - crop.left - crop.right) / 2;
 	screen.height = (screen.height - crop.top - crop.bottom) / 2;
@@ -64,10 +64,10 @@ bool FadeAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 			_state = 1;
 			_progress = 0xff;
 			
-			_color.SetAlpha(0xff);
+			_color(3, 0xff);
 		}
 
-		_color.SetAlpha(_progress);
+		_color(3, _progress);
 
     jgui::jsize_t<int> size = cmp->GetSize();
 
@@ -126,7 +126,7 @@ bool FadeAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 
 		delete image;
 
-		Painter::DrawString(g, 1, 1, jgui::Color(greetings.fgcolor), 0, 0, size.width, size.height, greetings.message);
+		Painter::DrawString(g, 1, 1, jgui::jcolor_t<float>(greetings.fgcolor), 0, 0, size.width, size.height, greetings.message);
 
 		// TODO:: mudar a forma de trabalho
     // g->Flip();
@@ -139,7 +139,7 @@ bool FadeAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 			return false;
 		}
 
-		_color.SetAlpha(_progress);
+		_color(3, _progress);
 
     jgui::jsize_t<int> size = cmp->GetSize();
 

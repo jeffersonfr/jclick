@@ -310,10 +310,10 @@ void MenuFrame::DrawOptions(jgui::Graphics *g, std::string title, std::string id
 
 	for (int i=0; i<(int)menu_options[id].size(); i++) {
 		struct options_t &option = menu_options[id][i];
-		jgui::Color color = jgui::Color::Gray;
+		jgui::jcolor_t<float> color = jgui::jcolor_name_t::Gray;
 
 		if (i == options_index) {
-			color = jgui::Color::White;
+			color = jgui::jcolor_name_t::White;
 		}
 
 		Painter::DrawBorder(g, color, tx, ty+i*(TEXT_SIZE+GAPY), tw, th);
@@ -562,9 +562,9 @@ void MenuFrame::DrawMenu(jgui::Graphics *g)
 
 	for (int i=0; i<OPTIONS_SIZE; i++) {
 		if (i != _index) {
-			g->SetColor(jgui::Color::Gray);
+			g->SetColor(jgui::jcolor_name_t::Gray);
 		} else {
-			g->SetColor(jgui::Color::White);
+			g->SetColor(jgui::jcolor_name_t::White);
 		}
 
 		g->DrawRectangle({ix+(i%OPTIONS_COLS)*(iw+igx), iy+(i/OPTIONS_COLS)*(ih+igy), iw, ih});

@@ -29,7 +29,7 @@ GridAnimation::GridAnimation(std::vector<std::string> images):
 	_state = 0;
 	_progress = 0;
 
-	_color = jgui::Color(jcommon::StringUtils::ToLower(greetings.bgcolor));
+	_color = jgui::jcolor_t<float>(jcommon::StringUtils::ToLower(greetings.bgcolor));
 
 	screen.width = (screen.width - crop.left - crop.right) / 2;
 	screen.height = (screen.height - crop.top - crop.bottom) / 2;

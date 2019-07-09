@@ -911,9 +911,9 @@ void MainFrame::Paint(jgui::Graphics *g)
 
 	if (_fade >= 0) {
 		if (shutter.type == "fade") {
-			jgui::Color color(shutter.color);
+			jgui::jcolor_t<float> color(shutter.color);
 
-			color.SetAlpha(0xff-_fade);
+			color(3, 0xff-_fade);
 
 			g->SetColor(color);
 			g->FillRectangle(_fregion);
@@ -947,9 +947,9 @@ void MainFrame::Paint(jgui::Graphics *g)
 			int dy = 128;
 			int wy = 10;
 
-			g->SetColor(jgui::Color("black"));
+			g->SetColor(jgui::jcolor_name_t::Black);
 			g->FillRectangle({_fregion.point.x, _fregion.size.height - dy, _fregion.size.width, wy});
-			g->SetColor(jgui::Color(t.color));
+			g->SetColor(t.color);
 			g->FillRectangle({_fregion.point.x, _fregion.size.height - dy + 2, _fregion.size.width, 2});
 			g->FillRectangle({_fregion.point.x, _fregion.size.height - dy + 6, _fregion.size.width, 2});
 
@@ -957,15 +957,15 @@ void MainFrame::Paint(jgui::Graphics *g)
 
 			for (int i=0; i<__C->GetThumbsCount(); i++) {
 				if (_timeline_frames.size() == 0) {
-					g->SetColor(jgui::Color("black"));
+					g->SetColor(jgui::jcolor_name_t::Black);
 					g->FillEllipse({_fregion.point.x + k, _fregion.size.height - dy + wy/2}, {t.size.width/2, t.size.height/2});
 
 					if (i < _thumb) {
-						g->SetColor(jgui::Color("green"));
+						g->SetColor(jgui::jcolor_name_t::Green);
 					} else if (i == _thumb) {
-						g->SetColor(jgui::Color("red"));
+						g->SetColor(jgui::jcolor_name_t::Red);
 					} else {
-						g->SetColor(jgui::Color("black"));
+						g->SetColor(jgui::jcolor_name_t::Black);
 					}
 
 					g->FillEllipse({_fregion.point.x + k, _fregion.size.height - dy + wy/2}, {t.size.width/2, t.size.height/2});

@@ -12,7 +12,7 @@ class FadeAnimation : public Animation {
 
 	private:
 		std::vector<jgui::Image *> _frames;
-		jgui::Color _color;
+		jgui::jcolor_t<float> _color;
 		int _state;
 		int _index;
 		int _progress;

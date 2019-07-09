@@ -48,7 +48,7 @@ jgui::Font * Painter::GetFont(int font_index)
 	return _fonts[font_index];
 }
 
-void Painter::DrawBorder(jgui::Graphics *g, jgui::Color color, int x, int y, int w, int h, int border_size)
+void Painter::DrawBorder(jgui::Graphics *g, jgui::jcolor_t<float> color, int x, int y, int w, int h, int border_size)
 {
 	if (w < 0 || h < 0) {
 		return;
@@ -61,7 +61,7 @@ void Painter::DrawBorder(jgui::Graphics *g, jgui::Color color, int x, int y, int
 	}
 }
 
-void Painter::DrawBox(jgui::Graphics *g, jgui::Color color, int x, int y, int w, int h)
+void Painter::DrawBox(jgui::Graphics *g, jgui::jcolor_t<float> color, int x, int y, int w, int h)
 {
 	if (w < 0 || h < 0) {
 		return;
@@ -71,17 +71,17 @@ void Painter::DrawBox(jgui::Graphics *g, jgui::Color color, int x, int y, int w,
 	g->FillRectangle({x, y, w, h});
 }
 
-void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::Color color, int x, int y, std::string fmt)
+void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::jcolor_t<float> color, int x, int y, std::string fmt)
 {
 	DrawString(g, font_index, shadow_size, color, x, y, fmt.c_str());
 }
 
-void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::Color color, int x, int y, int w, int h, std::string fmt)
+void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::jcolor_t<float> color, int x, int y, int w, int h, std::string fmt)
 {
 	DrawString(g, font_index, shadow_size, color, x, y, w, h, jgui::JHA_CENTER, jgui::JVA_CENTER, fmt.c_str());
 }
 
-void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::Color color, int x, int y, const char *fmt, ...)
+void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::jcolor_t<float> color, int x, int y, const char *fmt, ...)
 {
 	int ss = shadow_size/2;
 
@@ -110,7 +110,7 @@ void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgu
 	g->DrawString(tmp, jgui::jpoint_t<int>{x, y});
 }
 
-void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::Color color, int x, int y, int w, int h, jgui::jhorizontal_align_t halign, jgui::jvertical_align_t valign, const char *fmt, ...)
+void Painter::DrawString(jgui::Graphics *g, int font_index, int shadow_size, jgui::jcolor_t<float> color, int x, int y, int w, int h, jgui::jhorizontal_align_t halign, jgui::jvertical_align_t valign, const char *fmt, ...)
 {
 	int ss = shadow_size/2;
 	int tmp_size = 4096;

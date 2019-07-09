@@ -27,7 +27,7 @@ SlideAnimation::SlideAnimation(std::vector<std::string> images):
 	_state = 0;
 	_progress = 0;
 
-	_color = jgui::Color(jcommon::StringUtils::ToLower(greetings.bgcolor));
+	_color = jgui::jcolor_t(jcommon::StringUtils::ToLower(greetings.bgcolor));
 
 	jgui::jsize_t<int> scale = screen;
 
@@ -96,10 +96,10 @@ bool SlideAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 			_state = 1;
 			_progress = size.width;
 			
-			_color.SetAlpha(0xff);
+			_color(3, 0xff);
 		}
 
-		_color.SetAlpha(_progress);
+		_color(3, _progress);
 
 		Painter::DrawBox(g, _color, 0, gap, size.width, size.height-2*gap);
 	} else if (_state == 1) {
@@ -143,7 +143,7 @@ bool SlideAnimation::Paint(jgui::Component *cmp, jgui::Graphics *g)
 		int w = size.width-(size.width*greetings.margin.right)/100-x;
 		int h = size.height-(size.height*greetings.margin.bottom)/100-y;
 
-		Painter::DrawString(g, 1, 1, jgui::Color(greetings.fgcolor), x, y, w, h, greetings.message);
+		Painter::DrawString(g, 1, 1, jgui::jcolor_t<float>(greetings.fgcolor), x, y, w, h, greetings.message);
 
 		// TODO:: g->Flip();
 		

@@ -10,7 +10,7 @@ class SlideAnimation : public Animation {
 	private:
 		jgui::Image *_frames;
 		jgui::Image *_offscreen;
-		jgui::Color _color;
+		jgui::jcolor_t<float> _color;
 		int _state;
 		int _progress;
 
