@@ -25,7 +25,7 @@
 #define CROP_LINE_SIZE 4
 
 CropFrame::CropFrame(std::string title, jgui::jrect_t<int> region, jgui::jinsets_t<int> insets):
-	jgui::Container(/* title, */ region.point.x, region.point.y, region.size.width, region.size.height)
+	jgui::Container(region)
 {
 	_crop_region = region;
 	_crop_insets = insets;

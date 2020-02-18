@@ -81,7 +81,7 @@ class RepaintThread {
 RepaintThread _repaint_thread;
 
 MainFrame::MainFrame():
-	jgui::Window(0, 0, 1280, 720),
+	jgui::Window({1280, 720}),
 	jevent::FrameGrabberListener(),
 	jipc::RemoteCallListener()
 {
@@ -133,7 +133,6 @@ MainFrame::~MainFrame()
 	Command("rm -r \"%s\"", temporary.c_str());
 
 	StopGrabber();
-  SetTheme(NULL);
 
 	delete _screensaver;
 	delete _menu_frame;

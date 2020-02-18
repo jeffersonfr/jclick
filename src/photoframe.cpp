@@ -147,8 +147,9 @@ void PhotoFrame::Paint(jgui::Graphics *g)
 	jgui::jrect_t<int> bounds = GetVisibleBounds();
 	jgui::jinsets_t<int> insets = GetInsets();
 
-	int sw = bounds.size.width - insets.left - insets.right,
-			sh = bounds.size.height - insets.top - insets.bottom;
+	int 
+    sw = bounds.size.width - insets.left - insets.right,
+		sh = bounds.size.height - insets.top - insets.bottom;
 
 	if (_images.size() == 0) {
 		Painter::DrawBox(g, 0xffcfcdc8, insets.left, (2*sh)/4, sw, sh/5);
@@ -169,7 +170,7 @@ void PhotoFrame::Paint(jgui::Graphics *g)
 		fh = isize.height,
 		scale = 0.0;
 	int 
-    bordersize = GetTheme()->GetIntegerParam("window.border");
+    bordersize = GetTheme().GetIntegerParam("window.border");
 
 	sh = sh - 2 * bordersize;
 

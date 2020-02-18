@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 		std::cout << "Client request [" << method.What() << "]" << std::endl;
 
 		try {
-			client->SetRequestTimeout(timeout);
+			client->SetRequestTimeout(std::chrono::milliseconds(timeout));
 			client->CallMethod(&method, &response);
 		
 			std::cout << "Server response [" << response->What() << "]" << std::endl;
